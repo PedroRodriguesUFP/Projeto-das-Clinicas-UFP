@@ -1,0 +1,42 @@
+# Environment variables
+.env
+.env.*
+.env.local
+.env.*.local
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+dist/
+build/
+
+# Go
+*.o
+*.a
+*.so
+.DS_Store
+bin/
+*.exe
+backend/main
+backend/clinica-api
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Database
+*.sql.bak

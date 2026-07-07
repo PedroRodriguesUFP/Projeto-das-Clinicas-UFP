@@ -1,0 +1,281 @@
+/* ============================================ */
+/* FULLCALENDAR STYLES                          */
+/* ============================================ */
+
+.calendario-page {
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.calendario-page .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.calendario-page .page-header>div h1 {
+    margin: 0 0 0.5rem 0;
+    color: var(--ufp-dark);
+}
+
+.calendario-page .page-header>div p {
+    margin: 0;
+    color: var(--text-secondary);
+}
+
+.calendario-full {
+    width: 100%;
+}
+
+.calendario-container {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+}
+
+.calendario-header {
+    margin-bottom: 1.5rem;
+}
+
+.calendario-header h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--ufp-dark);
+    font-size: 1.3rem;
+}
+
+.calendario-legenda {
+    display: flex;
+    gap: 1.5rem;
+    margin: 0;
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.legenda-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.legenda-item .cor {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    display: inline-block;
+}
+
+.legenda-item .cor.agendada {
+    background-color: #3498db;
+}
+
+.legenda-item .cor.realizada {
+    background-color: #2ecc71;
+}
+
+.legenda-item .cor.cancelada {
+    background-color: #e74c3c;
+}
+
+.legenda-item .cor.faltou {
+    background-color: #95a5a6;
+}
+
+/* FullCalendar Custom Styles */
+.fc {
+    font-family: inherit;
+    min-height: 600px;
+}
+
+.fc-wrapper {
+    width: 100%;
+    height: 100%;
+}
+
+.fc .fc-button-primary {
+    background-color: var(--ufp-primary);
+    border-color: var(--ufp-primary);
+}
+
+.fc .fc-button-primary:hover {
+    background-color: var(--ufp-secondary);
+    border-color: var(--ufp-secondary);
+}
+
+.fc .fc-button-primary.fc-button-active {
+    background-color: var(--ufp-secondary);
+    border-color: var(--ufp-secondary);
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active:focus {
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+.fc .fc-col-header-cell {
+    background-color: var(--ufp-light);
+    color: var(--ufp-dark);
+    font-weight: 600;
+    padding: 1rem 0;
+}
+
+.fc .fc-daygrid-day {
+    background-color: white;
+}
+
+.fc .fc-daygrid-day:hover {
+    background-color: var(--ufp-light);
+}
+
+.fc .fc-daygrid-day.fc-day-today {
+    background-color: rgba(52, 152, 219, 0.1);
+}
+
+.fc .fc-daygrid-day-number {
+    color: var(--ufp-dark);
+    padding: 0.5rem;
+}
+
+.fc .fc-event {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    border: none;
+}
+
+.fc .fc-event:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    opacity: 0.9;
+}
+
+.fc .fc-event-title {
+    font-weight: 500;
+    font-size: 0.85rem;
+    padding: 2px 4px;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fc .fc-timegrid-slot {
+    height: 3em;
+}
+
+.fc .fc-col-time-base {
+    color: var(--text-secondary);
+}
+
+.fc .fc-timegrid-slot.fc-timegrid-slot-label {
+    font-size: 0.75rem;
+}
+
+/* Weekends */
+.fc .fc-day-sat,
+.fc .fc-day-sun {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .calendario-container {
+        padding: 1rem;
+    }
+
+    .calendario-legenda {
+        gap: 1rem;
+        font-size: 0.8rem;
+    }
+
+    .fc .fc-header-toolbar {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .fc .fc-toolbar {
+        padding: 0.5rem 0;
+    }
+
+    .fc .fc-button {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .fc .fc-daygrid-day-number {
+        padding: 0.25rem;
+        font-size: 0.8rem;
+    }
+
+    .fc .fc-event-title {
+        font-size: 0.7rem;
+    }
+}
+
+/* Read-Only Mode (para Professores/Terapeutas) */
+.calendario-full.readonly .fc .fc-daygrid-day {
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.calendario-full.readonly .fc .fc-daygrid-day:hover {
+    background-color: white;
+}
+
+.calendario-full.readonly .fc .fc-event {
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.alert-info {
+    background-color: #e3f2fd;
+    border: 1px solid #90caf9;
+    color: #1565c0;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* ============================================ */
+/* VISTA LISTA (mobile)                         */
+/* ============================================ */
+
+.fc .fc-list-event:hover td {
+    background-color: var(--ufp-light, #e8f5f0);
+    cursor: pointer;
+}
+
+.fc .fc-list-day-cushion {
+    background-color: var(--ufp-light, #e8f5f0);
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.fc .fc-list-empty {
+    background-color: #f9fafb;
+    font-size: 0.9rem;
+    color: var(--text-secondary, #6b7280);
+}
+
+.fc .fc-list-event-dot {
+    border-width: 8px;
+}
+
+.fc .fc-list-event-title {
+    font-size: 0.9rem;
+    padding: 0.5rem 0;
+}
+
+.fc .fc-list-event-time {
+    font-size: 0.85rem;
+    color: var(--text-secondary, #6b7280);
+    white-space: nowrap;
+}
