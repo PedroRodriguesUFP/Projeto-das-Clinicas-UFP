@@ -19,8 +19,6 @@ DELETE FROM consultas;
 
 -- ============================================================
 -- 2. APAGAR UTILIZADORES FORA DO KEEP-LIST
---    ON DELETE CASCADE elimina automaticamente os registos
---    correspondentes em terapeutas e utentes
 -- ============================================================
 DELETE FROM users
 WHERE email NOT IN (
@@ -36,7 +34,17 @@ WHERE email NOT IN (
 );
 
 -- ============================================================
--- 3. ADICIONAR PROFESSORES EM FALTA
+-- 3. GARANTIR QUE AS ÁREAS CLÍNICAS EXISTEM
+-- ============================================================
+INSERT INTO areas_clinicas (id, nome) VALUES 
+(1, 'Psicologia'), 
+(2, 'Nutrição'), 
+(3, 'Fisioterapia'), 
+(4, 'Terapia da Fala')
+ON CONFLICT (nome) DO NOTHING;
+
+-- ============================================================
+-- 4. ADICIONAR PROFESSORES EM FALTA
 -- ============================================================
 INSERT INTO users (nome, email, password_hash, role, active)
 VALUES
@@ -44,7 +52,7 @@ VALUES
    crypt('Clinica2026!', gen_salt('bf')), 'terapeuta', TRUE),
   ('Professor Terapia Fala', 'professor.fala@ufp.edu.pt',
    crypt('Clinica2026!', gen_salt('bf')), 'terapeuta', TRUE)
-ON CONFLICT (email) DO NOTHING;
+ON CONFLICT (email) WHERE email IS NOT NULL AND email <> '' DO NOTHING;
 
 -- Associar à tabela terapeutas
 INSERT INTO terapeutas (user_id, tipo, area_clinica_id)
@@ -74,7 +82,7 @@ SET area_clinica_id = 3
 WHERE user_id = (SELECT id FROM users WHERE email = '2023108685@ufp.edu.pt');
 
 -- ============================================================
--- 4. CRIAR UTENTES DE TESTE
+-- 5. CRIAR UTENTES DE TESTE
 -- ============================================================
 INSERT INTO users (nome, email, password_hash, role, active)
 VALUES
@@ -86,7 +94,7 @@ VALUES
   ('Gonçalo Rui Carvalho',   'goncalo.carvalho@teste.pt', crypt('Clinica2026!', gen_salt('bf')), 'utente', TRUE),
   ('Helena Cristina Neves',  'helena.neves@teste.pt',     crypt('Clinica2026!', gen_salt('bf')), 'utente', TRUE),
   ('Ivo Luís Martins',       'ivo.martins@teste.pt',      crypt('Clinica2026!', gen_salt('bf')), 'utente', TRUE)
-ON CONFLICT (email) DO NOTHING;
+ON CONFLICT (email) WHERE email IS NOT NULL AND email <> '' DO NOTHING;
 
 -- Criar registos na tabela utentes (sem terapeuta atribuído)
 INSERT INTO utentes (user_id, data_nascimento, numero_processo)
@@ -111,13 +119,9 @@ WHERE email IN (
 )
 ON CONFLICT (user_id) DO NOTHING;
 
-COMMIT;
+-- ============================================================
+-- 6. FORÇAR EMAILS VERIFICADOS PARA TESTES LOCAIS
+-- ============================================================
+UPDATE users SET email_verified = TRUE;
 
--- Verificação
-SELECT role, COUNT(*) AS total FROM users GROUP BY role ORDER BY role;
-SELECT u.email, u.role, t.tipo, ac.nome AS area, sup.email AS supervisor
-FROM users u
-LEFT JOIN terapeutas t ON t.user_id = u.id
-LEFT JOIN areas_clinicas ac ON ac.id = t.area_clinica_id
-LEFT JOIN users sup ON sup.id = t.supervisor_id
-ORDER BY u.role, u.email;
+COMMIT;
