@@ -89,6 +89,7 @@ func main() {
 	})
 
 	routes.RegisterAuthRoutes(r)
+	routes.RegisterElevenLabsRoutes(r)
 
 	r.GET("/areas-clinicas", controllers.GetAreasClinicas)
 
