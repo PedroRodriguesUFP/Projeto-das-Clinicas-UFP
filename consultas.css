@@ -1,0 +1,331 @@
+/* CONSULTAS PAGE */
+.consultas-list {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.filters-section {
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 8px 16px;
+  background: #e5e7eb;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #6b7280;
+  transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+  background: #d1d5db;
+}
+
+.filter-btn.active {
+  background: var(--ufp-primary);
+  color: white;
+}
+
+.consultas-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.consultas-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.agendar-consulta,
+.editar-consulta,
+.transferir-utentes {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.agendar-step-card {
+  width: 100%;
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
+  box-sizing: border-box;
+  margin-bottom: 24px;
+}
+
+.agendar-step-card h2 {
+  margin-top: 0;
+}
+
+.agendar-definir-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.agendar-definir-left {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.agendar-definir-right {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .agendar-definir-cols {
+    grid-template-columns: 1fr;
+  }
+}
+
+.area-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.area-card {
+  border: 1px solid #dbe6f3;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f8ff 100%);
+  color: #1e293b;
+  padding: 16px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+}
+
+.area-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12);
+}
+
+.area-card.selected {
+  border-color: #0f766e;
+  background: linear-gradient(180deg, #e6fffa 0%, #d6fff3 100%);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.18);
+}
+
+.area-card-title {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.helper-text {
+  margin: 0 0 12px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 10px;
+}
+
+.slot-btn {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.slot-btn:hover {
+  border-color: #0284c7;
+  color: #075985;
+}
+
+.slot-btn.selected {
+  border-color: #0f766e;
+  background: #ccfbf1;
+  color: #134e4a;
+}
+
+/* ============================================ */
+/* VIEW TOGGLE BUTTONS                          */
+/* ============================================ */
+.header-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.view-toggle {
+  display: flex;
+  gap: 0.5rem;
+  background: var(--ufp-light);
+  padding: 0.25rem;
+  border-radius: 6px;
+  border: 1px solid var(--ufp-light);
+}
+
+.view-btn {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+}
+
+.view-btn:hover {
+  color: var(--ufp-dark);
+}
+
+.view-btn.active {
+  background: white;
+  color: var(--ufp-primary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.calendario-section {
+  margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+  .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .view-toggle {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .view-btn {
+    flex: 1;
+  }
+}
+
+/* ===== Stats Bar (ListaConsultas) ===== */
+.consultas-stats-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  flex: 1;
+  min-width: 90px;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+  border-color: var(--ufp-primary);
+  background: #f0fdf4;
+}
+
+.stat-card.active {
+  border-color: var(--ufp-primary);
+  background: #f0fdf4;
+}
+
+.stat-card .stat-num {
+  display: block;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--ufp-primary);
+  line-height: 1;
+}
+
+.stat-card .stat-label {
+  display: block;
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* ===== Mobile consulta cards ===== */
+.consultas-mobile-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.consulta-mobile-card {
+  background: white;
+  border-radius: 10px;
+  padding: 14px 16px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.consulta-mobile-card .card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.consulta-mobile-card .card-nome {
+  font-weight: 600;
+  font-size: 15px;
+  color: #111827;
+}
+
+.consulta-mobile-card .card-meta {
+  font-size: 13px;
+  color: #6b7280;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 10px;
+}
+
+.consulta-mobile-card .card-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  border-top: 1px solid #f3f4f6;
+  padding-top: 10px;
+}
+
+.consulta-mobile-card .card-actions .btn-icon {
+  padding: 8px 10px;
+}
+
+/* ===== Responsive table columns ===== */
+@media (max-width: 900px) {
+  .consultas-table .col-area,
+  .consultas-table .col-sala {
+    display: none;
+  }
+}
