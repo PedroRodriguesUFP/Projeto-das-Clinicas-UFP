@@ -1,0 +1,35 @@
+/* UTENTES PAGE */
+.utentes-list {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.utentes-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.utentes-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.utentes-table .nome {
+  font-weight: 500;
+}
+
+.utentes-table .morada {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .utentes-table .morada {
+    display: none;
+  }
+
+  .utentes-table .numero_processo {
+    display: none;
+  }
+}
