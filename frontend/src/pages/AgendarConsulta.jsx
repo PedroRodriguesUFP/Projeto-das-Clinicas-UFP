@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DateInput } from '../components/DateInput.jsx';
+import { MiniCalendar } from '../components/MiniCalendar.jsx'
 import { useAuth } from '../context/AuthContext.jsx';
 import {
   createConsulta,
@@ -413,11 +414,13 @@ export function AgendarConsulta() {
               <div className="form-row">
                 <div className="form-group">
                   <label>Data *</label>
-                  <DateInput
-                    name="data_inicio"
+                  <MiniCalendar
                     value={form.data_inicio}
-                    onChange={handleChange}
-                    required
+                    onChange={(novaData)=>{
+                      handleChange({
+                        target:{name:'data_inicio',value:novaData}
+                      });
+                    }}
                   />
                 </div>
               </div>
