@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useTranslation } from 'react-i18next';
 import { FileText as FileTextIcon, ArrowLeft, LockFill } from 'react-bootstrap-icons';
 import {
   getConsultaById,
@@ -17,6 +18,8 @@ export function DetalhesConsulta() {
   const [error, setError] = useState('');
   const [accessDenied, setAccessDenied] = useState(false);
   const [consulta, setConsulta] = useState(null);
+
+  const { t } = useTranslation();
 
   const [terapeutas, setTerapeutas] = useState([]);
   const [salas, setSalas] = useState([]);
@@ -97,7 +100,7 @@ export function DetalhesConsulta() {
   };
 
   if (loading) {
-    return <div className="page">A carregar...</div>;
+    return <div className="page">{t('common.loading') || 'A carregar...'}</div>;
   }
 
   if (accessDenied) {
@@ -105,13 +108,13 @@ export function DetalhesConsulta() {
       <div className="page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
         <div className="card" style={{ textAlign: 'center', maxWidth: 460, padding: '2.5rem 2rem' }}>
           <LockFill size={48} style={{ color: '#059669', display: 'block', margin: '0 auto 1rem' }} />
-          <h2 style={{ marginBottom: '0.75rem' }}>Acesso temporário expirado</h2>
+          <h2 style={{ marginBottom: '0.75rem' }}>{t('consultationDetails.accessExpiredTitle') || 'Acesso temporário expirado'}</h2>
           <p style={{ color: '#6b7280', marginBottom: '1.75rem', lineHeight: 1.6 }}>
-            Só podes aceder a esta consulta durante o intervalo de{' '}
-            <strong>2 horas antes</strong> e <strong>2 horas depois</strong> do horário marcado.
+            {t('consultationDetails.accessExpiredIntro') || 'Só podes aceder a esta consulta durante o intervalo de '}
+            <strong>{t('consultationDetails.twoHoursBefore') || '2 horas antes'}</strong> {t('consultationDetails.and') || 'e'} <strong>{t('consultationDetails.twoHoursAfter') || '2 horas depois'}</strong> {t('consultationDetails.ofScheduledTime') || 'do horário marcado.'}
           </p>
           <button className="btn btn-primary" onClick={() => navigate('/consultas')}>
-            ← Voltar às Consultas
+            {t('common.backToConsultations') || '← Voltar às Consultas'}
           </button>
         </div>
       </div>
@@ -123,9 +126,9 @@ export function DetalhesConsulta() {
       <div className="page editar-consulta">
         <div className="page-header">
           <button className="btn-back" onClick={() => navigate(-1)}>
-            <ArrowLeft size={18} /> Voltar
+            <ArrowLeft size={18} /> {t('common.back') || 'Voltar'}
           </button>
-          <h1>Detalhes da Consulta</h1>
+          <h1>{t('consultationDetails.title') || 'Detalhes da Consulta'}</h1>
         </div>
 
         <div className="form-container">
@@ -154,51 +157,51 @@ export function DetalhesConsulta() {
 
       <div className="form-container">
         <div className="card">
-          <h2>Informações da Consulta</h2>
+          <h2>{t('consultationDetails.information') || 'Informações da Consulta'}</h2>
 
           <div className="form-row">
             <div className="form-group">
-              <label>Terapeuta</label>
+              <label>{t('consultationDetails.therapist') || 'Terapeuta'}</label>
               <div className="detail-value">{getTerapeutaNome()}</div>
             </div>
 
             <div className="form-group">
-              <label>Sala</label>
+              <label>{t('consultationDetails.room') || 'Sala'}</label>
               <div className="detail-value">{getSalaNome()}</div>
             </div>
           </div>
 
           <div className="form-group">
-            <label>Área Clínica</label>
+            <label>{t('consultationDetails.clinicArea') || 'Área Clínica'}</label>
             <div className="detail-value">{getAreaClinicaNome()}</div>
           </div>
 
           <div className="form-group">
-            <label>Tipo de Consulta</label>
-            <div className="detail-value" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <label>{t('consultationDetails.type') || 'Tipo de Consulta'}</label>
+              <div className="detail-value" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               {getConsultaValue(consulta, 'tipo_consulta') === 'grupo' ? (
                 <>
-                  Grupo
+                  {t('consultationDetails.group') || 'Grupo'}
                   <span style={{ background: '#6ba8d4', color: 'white', borderRadius: 4, padding: '2px 10px', fontSize: 12, fontWeight: 600 }}>
-                    Grupo
+                    {t('consultationDetails.group') || 'Grupo'}
                   </span>
                 </>
-              ) : 'Individual'}
+              ) : (t('consultationDetails.individual') || 'Individual')}
             </div>
           </div>
 
-          <h2 style={{ marginTop: '2rem' }}>Data e Hora</h2>
+          <h2 style={{ marginTop: '2rem' }}>{t('consultationDetails.dateTime') || 'Data e Hora'}</h2>
 
           <div className="form-row">
             <div className="form-group">
-              <label>Data Início</label>
+              <label>{t('consultationDetails.startDate') || 'Data Início'}</label>
               <div className="detail-value">
                 {formatarData(getConsultaValue(consulta, 'data_inicio'))}
               </div>
             </div>
 
             <div className="form-group">
-              <label>Hora Início</label>
+              <label>{t('consultationDetails.startTime') || 'Hora Início'}</label>
               <div className="detail-value">
                 {formatarHora(getConsultaValue(consulta, 'data_inicio'))}
               </div>
@@ -207,14 +210,14 @@ export function DetalhesConsulta() {
 
           <div className="form-row">
             <div className="form-group">
-              <label>Data Fim</label>
+              <label>{t('consultationDetails.endDate') || 'Data Fim'}</label>
               <div className="detail-value">
                 {formatarData(getConsultaValue(consulta, 'data_fim'))}
               </div>
             </div>
 
             <div className="form-group">
-              <label>Hora Fim</label>
+              <label>{t('consultationDetails.endTime') || 'Hora Fim'}</label>
               <div className="detail-value">
                 {formatarHora(getConsultaValue(consulta, 'data_fim'))}
               </div>
@@ -223,7 +226,7 @@ export function DetalhesConsulta() {
 
           {consulta?.documentos && consulta.documentos.length > 0 && (
             <div className="form-group" style={{ marginTop: '2rem' }}>
-              <h3>Documentos Carregados</h3>
+              <h3>{t('consultationDetails.uploadedDocuments') || 'Documentos Carregados'}</h3>
               <div className="documentos-list" style={{ marginBottom: '1rem' }}>
                 {consulta.documentos.map((doc) => (
                   <div

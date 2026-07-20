@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext.jsx';
 import toast from 'react-hot-toast';
 import { MiniCalendar } from './MiniCalendar.jsx';
@@ -23,6 +24,7 @@ export function ModalAgendarConsultaV2({
     loading = false
 }) {
     const { user } = useAuth();
+    const { t } = useTranslation();
     const today = new Date().toISOString().split('T')[0];
 
     const [formData, setFormData] = useState({
@@ -230,7 +232,7 @@ export function ModalAgendarConsultaV2({
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content modal-wide" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
-                    <h2>Agendar Consulta</h2>
+                    <h2>{t('consultationsPage.newAppointment')}</h2>
                     <button className="modal-close" onClick={onClose}>✕</button>
                 </div>
 
@@ -238,7 +240,7 @@ export function ModalAgendarConsultaV2({
                     <div className="modal-two-col">
                         {/* Left column: scheduling fields */}
                         <div className="modal-col">
-                            <p className="modal-col-title">Detalhes da Consulta</p>
+                            <p className="modal-col-title">{t('consultationDetails.information') || 'Detalhes da Consulta'}</p>
 
                             <div className="form-group">
                                 <label htmlFor="area_clinica_id">Área Clínica *</label>
@@ -249,7 +251,7 @@ export function ModalAgendarConsultaV2({
                                     onChange={handleChange}
                                     required
                                 >
-                                    <option value="">Seleciona uma área clínica</option>
+                                    <option value="">{t('createPatient.selectClinicArea') || 'Seleciona uma área clínica'}</option>
                                     {areasClinicas.map((area) => (
                                         <option key={area.id} value={area.id}>
                                             {area.nome}
@@ -268,8 +270,8 @@ export function ModalAgendarConsultaV2({
                                     required
                                     disabled={!formData.area_clinica_id}
                                 >
-                                    <option value="">
-                                        {formData.area_clinica_id ? 'Seleciona um terapeuta' : 'Seleciona primeiro uma área clínica'}
+                                        <option value="">
+                                        {formData.area_clinica_id ? t('consultationsPage.selectTherapist') || 'Seleciona um terapeuta' : t('consultationsPage.selectAreaFirst') || 'Seleciona primeiro uma área clínica'}
                                     </option>
                                     {terapeutasFiltrados.map((terapeuta) => (
                                         <option key={terapeuta.user_id} value={terapeuta.user_id}>
@@ -289,15 +291,15 @@ export function ModalAgendarConsultaV2({
                             </div>
 
                             <div className="form-group">
-                                <label>Horário *</label>
+                                <label>{t('consultationsPage.columns.startDate') || 'Horário'} *</label>
                                 {!formData.terapeuta_id || !formData.data ? (
                                     <p className="helper-text" style={{ margin: 0 }}>
-                                        Seleciona terapeuta e data para ver os horários disponíveis.
+                                        {t('consultationsPage.selectTherapistAndDate') || 'Seleciona terapeuta e data para ver os horários disponíveis.'}
                                     </p>
                                 ) : loadingSlots ? (
-                                    <p className="helper-text" style={{ margin: 0 }}>A carregar horários...</p>
+                                    <p className="helper-text" style={{ margin: 0 }}>{t('common.loading') || 'A carregar horários...'}</p>
                                 ) : slotsDisponiveis.length === 0 ? (
-                                    <p className="helper-text" style={{ margin: 0 }}>Sem horários disponíveis para esta data.</p>
+                                    <p className="helper-text" style={{ margin: 0 }}>{t('consultationsPage.noResults') || 'Sem horários disponíveis para esta data.'}</p>
                                 ) : (
                                     <div className="slots-grid">
                                         {slotsDisponiveis.map((slot) => (
@@ -319,8 +321,8 @@ export function ModalAgendarConsultaV2({
                                     <label htmlFor="sala_id">Sala *</label>
                                     {salasDisponiveis.length === 0 ? (
                                         <p className="helper-text" style={{ margin: 0 }}>
-                                            Sem salas disponíveis para este horário.
-                                        </p>
+                                                {t('consultationsPage.noRoomsAvailable') || 'Sem salas disponíveis para este horário.'}
+                                            </p>
                                     ) : (
                                         <select
                                             id="sala_id"
@@ -343,7 +345,7 @@ export function ModalAgendarConsultaV2({
 
                         {/* Right column: utente + personal info */}
                         <div className="modal-col">
-                            <p className="modal-col-title">Dados do Utente</p>
+                            <p className="modal-col-title">{t('dashboardStaff.patients') || 'Dados do Utente'}</p>
 
                             {isStaff(user?.role) && (
                                 <div className="form-group">
@@ -355,7 +357,7 @@ export function ModalAgendarConsultaV2({
                                         onChange={handleChange}
                                         required
                                     >
-                                        <option value="">Seleciona um utente</option>
+                                        <option value="">{t('students.searchPlaceholder') || 'Seleciona um utente'}</option>
                                         {utentes.map((utente) => (
                                             <option key={utente.id} value={utente.id}>
                                                 {utente.nome}
@@ -368,19 +370,19 @@ export function ModalAgendarConsultaV2({
                             {utenteInfo ? (
                                 <div className="utente-info-panel">
                                     <div className="utente-info-row">
-                                        <span className="utente-info-label">Nome</span>
+                                        <span className="utente-info-label">{t('register.name') || 'Nome'}</span>
                                         <span className="utente-info-value">{utenteInfo.nome || '—'}</span>
                                     </div>
                                     <div className="utente-info-row">
-                                        <span className="utente-info-label">Email</span>
+                                        <span className="utente-info-label">{t('login.emailLabel') || 'Email'}</span>
                                         <span className="utente-info-value">{utenteInfo.email || '—'}</span>
                                     </div>
                                     <div className="utente-info-row">
-                                        <span className="utente-info-label">Telefone</span>
+                                        <span className="utente-info-label">{t('home.phone') || 'Telefone'}</span>
                                         <span className="utente-info-value">{utenteInfo.telefone || '—'}</span>
                                     </div>
                                     <div className="utente-info-row">
-                                        <span className="utente-info-label">Morada</span>
+                                        <span className="utente-info-label">{t('createPatient.address') || 'Morada'}</span>
                                         <span className="utente-info-value">{utenteInfo.morada || '—'}</span>
                                     </div>
                                 </div>
@@ -388,33 +390,33 @@ export function ModalAgendarConsultaV2({
                                 <div className="utente-info-panel">
                                     <p className="utente-info-empty">
                                         {isStaff(user?.role)
-                                            ? 'Seleciona um utente para ver os dados de contacto.'
-                                            : 'Informações de contacto não disponíveis.'}
+                                            ? t('students.selectPatientInfo') || 'Seleciona um utente para ver os dados de contacto.'
+                                            : t('students.contactInfoUnavailable') || 'Informações de contacto não disponíveis.'}
                                     </p>
                                 </div>
                             )}
 
                             <div className="form-group">
-                                <label htmlFor="tipo">Tipo de Consulta</label>
+                                <label htmlFor="tipo">{t('consultationDetails.type') || 'Tipo de Consulta'}</label>
                                 <select
                                     id="tipo"
                                     name="tipo"
                                     value={formData.tipo}
                                     onChange={handleChange}
                                 >
-                                    <option value="consulta_geral">Consulta Geral</option>
-                                    <option value="consulta_especializada">Consulta Especializada</option>
-                                    <option value="seguimento">Seguimento</option>
-                                    <option value="avaliacao">Avaliação</option>
+                                    <option value="consulta_geral">{t('consultationsPage.defaultType') || 'Consulta Geral'}</option>
+                                    <option value="consulta_especializada">{t('consultationsPage.specialized') || 'Consulta Especializada'}</option>
+                                    <option value="seguimento">{t('consultationsPage.followUp') || 'Seguimento'}</option>
+                                    <option value="avaliacao">{t('consultationsPage.evaluation') || 'Avaliação'}</option>
                                 </select>
                             </div>
 
                             <div className="modal-buttons" style={{ marginTop: 'auto' }}>
                                 <button type="button" className="btn-secondary" onClick={onClose}>
-                                    Cancelar
+                                    {t('common.cancel')}
                                 </button>
                                 <button type="submit" className="btn-primary" disabled={loading}>
-                                    {loading ? 'A processar...' : 'Agendar Consulta'}
+                                    {loading ? t('common.loading') : t('consultationsPage.newAppointment')}
                                 </button>
                             </div>
                         </div>

@@ -6,6 +6,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
 import '../styles/calendario.css';
+import { useTranslation } from 'react-i18next';
 
 export function CalendarioVisualizacao({
     consultas = [],
@@ -15,6 +16,7 @@ export function CalendarioVisualizacao({
 }) {
     const [events, setEvents] = useState([]);
     const [error, setError] = useState(null);
+    const { t } = useTranslation();
 
     const isMobile = () => window.innerWidth < 768;
 
@@ -43,9 +45,10 @@ export function CalendarioVisualizacao({
 
                     const pendente = consulta.estado_validacao === 'pendente';
 
+                    
                     return {
                         id: String(consulta.id),
-                        title: `${pendente ? '⏳ ' : ''}${consulta.tipo || 'Consulta'} - ${consulta.utente_nome || 'Cliente'}${pendente ? ' (pendente de aprovação)' : ''}`,
+                        title: `${pendente ? '⏳ ' : ''}${consulta.tipo || t('consultationsPage.defaultType')} - ${consulta.utente_nome || t('consultationsPage.client')}${pendente ? ' (' + t('consultationsPage.approvePending') + ')' : ''}`,
                         start: startStr,
                         end: endStr,
                         backgroundColor: coresEstado[consulta.estado] || '#3498db',
@@ -109,7 +112,7 @@ export function CalendarioVisualizacao({
         return (
             <div className="calendario-container">
                 <div style={{ color: 'red', padding: '1rem' }}>
-                    Erro ao carregar calendário: {error}
+                    {`Erro ao carregar calendário: ${error}`}
                 </div>
             </div>
         );
@@ -118,12 +121,12 @@ export function CalendarioVisualizacao({
     return (
         <div className="calendario-container">
             <div className="calendario-header">
-                <h3><CalendarDate size={18} /> Calendário</h3>
+                <h3><CalendarDate size={18} /> {t('nav.calendar')}</h3>
                 <p className="calendario-legenda">
-                    <span className="legenda-item"><span className="cor agendada"></span> Agendada</span>
-                    <span className="legenda-item"><span className="cor realizada"></span> Realizada</span>
-                    <span className="legenda-item"><span className="cor cancelada"></span> Cancelada</span>
-                    <span className="legenda-item"><span className="cor faltou"></span> Faltou</span>
+                    <span className="legenda-item"><span className="cor agendada"></span> {t('consultationsPage.scheduled')}</span>
+                    <span className="legenda-item"><span className="cor realizada"></span> {t('consultationsPage.completed')}</span>
+                    <span className="legenda-item"><span className="cor cancelada"></span> {t('consultationsPage.cancelled')}</span>
+                    <span className="legenda-item"><span className="cor faltou"></span> {t('consultationsPage.missed') || 'Faltou'}</span>
                 </p>
             </div>
 
@@ -133,11 +136,11 @@ export function CalendarioVisualizacao({
                     initialView={getInitialView()}
                     headerToolbar={getHeaderToolbar()}
                     buttonText={{
-                        today: 'Hoje',
-                        month: 'Mês',
-                        week: 'Semana',
-                        day: 'Dia',
-                        list: 'Lista',
+                        today: t('consultationsPage.today'),
+                        month: t('consultationsPage.month'),
+                        week: t('consultationsPage.week'),
+                        day: t('consultationsPage.day'),
+                        list: t('consultationsPage.list'),
                     }}
                     events={events}
                     dateClick={handleDateClick}
@@ -154,7 +157,7 @@ export function CalendarioVisualizacao({
                             arg.view.calendar.changeView('dayGridMonth');
                         }
                     }}
-                    noEventsText="Sem consultas neste período"
+                    noEventsText={t('consultationsPage.noResults')}
                 />
             </div>
         </div>

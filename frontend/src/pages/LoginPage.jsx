@@ -5,10 +5,12 @@ import { loginRequest, loginWithGoogle, resendVerificationRequest, verifyEmailRe
 import { GoogleLogin } from '@react-oauth/google';
 import { Eye, EyeSlash, PersonBadgeFill, PersonFill } from 'react-bootstrap-icons';
 import '../styles/login.css';
+import { useTranslation } from 'react-i18next';
 
 export function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { t } = useTranslation();
 
   const [selectedRole, setSelectedRole] = useState(null); // null | 'staff' | 'utente'
 
@@ -119,8 +121,8 @@ export function LoginPage() {
               <div className="login-logo">
                 <img src="/images/ufp-logo.png" alt="Logo UAAPS" />
               </div>
-              <h1>Bem-vindo</h1>
-              <p>Acesso à UAAPS</p>
+                <h1>{t('login.welcome')}</h1>
+                <p>{t('login.access')}</p>
             </div>
 
             {/* Seletor de perfil */}
@@ -149,10 +151,10 @@ export function LoginPage() {
             {selectedRole === 'staff' && (
               <>
                 <button className="login-back-btn" onClick={goBack}>
-                  ← Voltar
+                  {t('login.back')}
                 </button>
                 <p style={{ textAlign: 'center', fontSize: '14px', color: '#374151', marginBottom: '20px' }}>
-                  Inicia sessão com a tua conta Google da Universidade Fernando Pessoa.
+                  {t('login.googleStaffInstruction')}
                 </p>
                 {error && <p className="login-error">{error}</p>}
                 <div className="login-google-wrapper">
@@ -171,36 +173,36 @@ export function LoginPage() {
             {selectedRole === 'utente' && (
               <>
                 <button className="login-back-btn" onClick={goBack}>
-                  ← Voltar
+                  {t('login.back')}
                 </button>
 
                 {!showVerification ? (
                   <>
                   <form className="login-form" onSubmit={handleSubmit}>
                     <label>
-                      Email
+                      {t('login.emailLabel')}
                       <input
                         type="email"
                         value={email}
                         onChange={(e) => { setEmail(e.target.value); setShowResend(false); }}
-                        placeholder="example@email.pt"
+                        placeholder={t('login.emailPlaceholder')}
                         required
                       />
                     </label>
 
                     <label>
-                      Palavra-passe
+                      {t('login.passwordLabel')}
                       <div style={{ position: 'relative', display: 'block' }}>
                         <input
                           type={showPassword ? 'text' : 'password'}
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
-                          placeholder="Insira sua palavra-passe"
+                          placeholder={t('login.passwordPlaceholder')}
                           required
                           style={{ paddingRight: 40, width: '100%', boxSizing: 'border-box' }}
                         />
                         <button type="button" onClick={() => setShowPassword(p => !p)} tabIndex={-1}
-                          aria-label={showPassword ? 'Ocultar password' : 'Mostrar password'}
+                          aria-label={showPassword ? t('login.passwordToggleHide') : t('login.passwordToggleShow')}
                           style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: 0 }}>
                           {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
                         </button>
@@ -217,36 +219,36 @@ export function LoginPage() {
                         onClick={handleResend}
                         disabled={loading}
                       >
-                        {loading ? 'A enviar...' : 'Reenviar código de verificação'}
+                        {loading ? t('login.verifying') || 'A enviar...' : t('login.resendVerification')}
                       </button>
                     )}
 
                     <button type="submit" className="login-button" disabled={loading}>
-                      {loading ? 'A entrar...' : 'Entrar'}
+                      {loading ? t('login.verifying') || 'A entrar...' : t('login.login')}
                     </button>
 
                     <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '14px', color: '#666' }}>
-                      Não tem conta?
+                      {t('login.noAccount')}
                       <Link
                         to="/criar-conta"
                         style={{ marginLeft: '5px', color: '#059669', textDecoration: 'none', fontWeight: '600' }}
                       >
-                        Criar conta aqui
+                        {t('login.createAccount')}
                       </Link>
                     </div>
                     <div style={{ marginTop: '10px', textAlign: 'center', fontSize: '14px', color: '#666' }}>
-                      Conta criada por profissional de saúde?
+                      {t('login.activationPrompt')}
                       <Link
                         to="/ativar-conta"
                         style={{ marginLeft: '5px', color: '#059669', textDecoration: 'none', fontWeight: '600' }}
                       >
-                        Ativar aqui
+                        {t('login.activateHere')}
                       </Link>
                     </div>
                   </form>
 
-                  <div className="login-divider">
-                    <span className="login-divider-text">Ou continue com</span>
+                    <div className="login-divider">
+                    <span className="login-divider-text">{t('login.continueWith')}</span>
                   </div>
                   <div className="login-google-wrapper">
                     <GoogleLogin
@@ -261,15 +263,15 @@ export function LoginPage() {
                 ) : (
                   <form className="login-form" onSubmit={handleVerify}>
                     <p style={{ fontSize: '14px', color: '#374151', marginBottom: '16px' }}>
-                      Introduza o código de 6 dígitos enviado para <strong>{email}</strong>.
+                      {t('login.verificationPrompt', { email })}
                     </p>
                     <label>
-                      Código de Verificação
+                      {t('login.verificationCodeLabel')}
                       <input
                         type="text"
                         value={verificationCode}
                         onChange={(e) => setVerificationCode(e.target.value)}
-                        placeholder="000000"
+                        placeholder={t('login.verificationCodePlaceholder')}
                         maxLength="6"
                         required
                         autoFocus
@@ -279,7 +281,7 @@ export function LoginPage() {
                     {error && <p className="login-error">{error}</p>}
 
                     <button type="submit" className="login-button" disabled={loading}>
-                      {loading ? 'A verificar...' : 'Verificar e Entrar'}
+                      {loading ? t('login.verifying') || 'A verificar...' : t('login.verifyAndLogin')}
                     </button>
 
                     <button
@@ -287,7 +289,7 @@ export function LoginPage() {
                       style={{ marginTop: '8px', background: 'none', border: 'none', color: '#059669', cursor: 'pointer', fontSize: '14px', width: '100%' }}
                       onClick={() => { setShowVerification(false); setError(''); setVerificationCode(''); }}
                     >
-                      ← Voltar ao login
+                      {t('login.backToLogin')}
                     </button>
                   </form>
                 )}

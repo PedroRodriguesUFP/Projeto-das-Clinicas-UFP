@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { createUtente } from '../services/utentes.jsx';
 import { DateInput } from '../components/DateInput.jsx';
 
 export function CriarUtente() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({
@@ -50,9 +52,9 @@ export function CriarUtente() {
     <div className="page criar-utente">
       <div className="page-header">
         <button className="btn-back" onClick={() => navigate('/utentes')}>
-          ← Voltar
+          {t('common.back') || '← Voltar'}
         </button>
-        <h1>Novo Utente</h1>
+        <h1>{t('createPatient.title') || 'Novo Utente'}</h1>
       </div>
 
       <div className="form-container">
@@ -64,10 +66,10 @@ export function CriarUtente() {
         )}
 
         <form onSubmit={handleSubmit} className="card">
-          <h2>Informações Pessoais</h2>
+          <h2>{t('createPatient.personalInfo') || 'Informações Pessoais'}</h2>
 
           <div className="form-group">
-            <label>Nome Completo *</label>
+            <label>{t('createPatient.fullName') || 'Nome Completo *'}</label>
             <input
               type="text"
               name="nome"
@@ -79,7 +81,7 @@ export function CriarUtente() {
 
           <div className="form-row">
             <div className="form-group">
-              <label>Email *</label>
+              <label>{t('createPatient.email') || 'Email *'}</label>
               <input
                 type="email"
                 name="email"
@@ -90,7 +92,7 @@ export function CriarUtente() {
             </div>
 
             <div className="form-group">
-              <label>Data de Nascimento</label>
+              <label>{t('createPatient.dob') || 'Data de Nascimento'}</label>
               <DateInput
                 name="data_nascimento"
                 value={form.data_nascimento}
@@ -101,7 +103,7 @@ export function CriarUtente() {
 
           <div className="form-row">
             <div className="form-group">
-              <label>Telefone</label>
+              <label>{t('createPatient.phone') || 'Telefone'}</label>
               <input
                 type="tel"
                 name="telefone"
@@ -112,7 +114,7 @@ export function CriarUtente() {
             </div>
 
             <div className="form-group">
-              <label>Número de Processo</label>
+              <label>{t('createPatient.processNumber') || 'Número de Processo'}</label>
               <input
                 type="text"
                 name="numero_processo"
@@ -124,7 +126,7 @@ export function CriarUtente() {
           </div>
 
           <div className="form-group full-width">
-            <label>Morada</label>
+            <label>{t('createPatient.address') || 'Morada'}</label>
             <textarea
               name="morada"
               value={form.morada}
@@ -134,11 +136,11 @@ export function CriarUtente() {
             />
           </div>
 
-          <h2>Credenciais de Acesso</h2>
+          <h2>{t('createPatient.credentials') || 'Credenciais de Acesso'}</h2>
 
           <div className="form-row">
             <div className="form-group">
-              <label>Password *</label>
+              <label>{t('createPatient.password') || 'Password *'}</label>
               <input
                 type="password"
                 name="password"
@@ -150,7 +152,7 @@ export function CriarUtente() {
             </div>
 
             <div className="form-group">
-              <label>Confirmar Password *</label>
+              <label>{t('createPatient.passwordConfirm') || 'Confirmar Password *'}</label>
               <input
                 type="password"
                 name="passwordConfirm"
@@ -169,14 +171,14 @@ export function CriarUtente() {
               onClick={() => navigate('/utentes')}
               disabled={loading}
             >
-              Cancelar
+              {t('common.cancel') || 'Cancelar'}
             </button>
             <button
               type="submit"
               className="btn btn-primary"
               disabled={loading}
             >
-              {loading ? 'A criar...' : 'Criar Utente'}
+              {loading ? (t('createPatient.creating') || 'A criar...') : (t('createPatient.create') || 'Criar Utente')}
             </button>
           </div>
         </form>

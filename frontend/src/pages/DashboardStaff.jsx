@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { ConfirmModal } from '../components/ConfirmModal.jsx';
@@ -39,6 +40,7 @@ function StatCard({ icon, label, value }) {
 }
 
 export function DashboardStaff() {
+    const { t } = useTranslation();
     const { user } = useAuth();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('consultas');
@@ -317,52 +319,52 @@ export function DashboardStaff() {
         } catch { }
     };
 
-    if (!user) return <div className="page centered">A carregar...</div>;
+    if (!user) return <div className="page centered">{t('common.loading') || 'A carregar...'}</div>;
 
     return (
         <div className="page dashboard-staff">
             <div className="dashboard-header">
-                <h1>Dashboard — {user.role === 'administrativo' ? 'Administrativo' : (user.role.charAt(0).toUpperCase() + user.role.slice(1))}</h1>
-                <p>Bem-vindo, {user.name}!</p>
+                <h1>{t('dashboardStaff.title', { role: user.role })}</h1>
+                <p>{t('dashboardStaff.welcome', { name: user.name })}</p>
             </div>
 
             <div className="dashboard-tabs">
                 <button className={`tab-btn ${activeTab === 'consultas' ? 'active' : ''}`} onClick={() => setActiveTab('consultas')}>
-                    <CalendarDate size={16} /> Agenda
+                    <CalendarDate size={16} /> {t('dashboardStaff.agenda')}
                 </button>
                 <button className={`tab-btn ${activeTab === 'utentes' ? 'active' : ''}`} onClick={() => setActiveTab('utentes')}>
-                    <People size={16} /> Utentes
+                    <People size={16} /> {t('dashboardStaff.patients')}
                 </button>
                 <button className={`tab-btn ${activeTab === 'salas' ? 'active' : ''}`} onClick={() => setActiveTab('salas')}>
-                    <Hospital size={16} /> Salas
+                    <Hospital size={16} /> {t('dashboardStaff.rooms')}
                 </button>
                 <button className={`tab-btn`} onClick={() => setIsUtenteModalOpen(true)}>
-                    <PlusLg size={16} /> Adicionar Utente
+                    <PlusLg size={16} /> {t('dashboardStaff.addPatient')}
                 </button>
                 {(user.role === 'admin' || user.role === 'administrativo') && (
                     <button className={`tab-btn ${activeTab === 'assiduidade' ? 'active' : ''}`} onClick={() => setActiveTab('assiduidade')}>
-                        <ClockHistory size={16} /> Presenças
+                        <ClockHistory size={16} /> {t('dashboardStaff.attendance')}
                     </button>
                 )}
                 {(user.role === 'admin' || user.role === 'terapeuta') && (
                     <button className={`tab-btn ${activeTab === 'fichas' ? 'active' : ''}`} onClick={() => setActiveTab('fichas')}>
-                        <FileText size={16} /> Fichas
+                        <FileText size={16} /> {t('dashboardStaff.records')}
                     </button>
                 )}
                 {user.tipo === 'professor' && (
                     <button className={`tab-btn ${activeTab === 'alunos' ? 'active' : ''}`} onClick={() => setActiveTab('alunos')}>
-                        <Mortarboard size={16} /> Gerir Alunos
+                        <Mortarboard size={16} /> {t('dashboardStaff.manageStudents')}
                     </button>
                 )}
                 {(user.role === 'admin' || user.role === 'administrativo') && (
                     <button className={`tab-btn ${activeTab === 'alunos-lista' ? 'active' : ''}`} onClick={() => setActiveTab('alunos-lista')}>
-                        <Mortarboard size={16} /> Terapeutas
+                        <Mortarboard size={16} /> {t('dashboardStaff.therapists')}
                     </button>
                 )}
                 {(user.tipo === 'professor' || user.role === 'admin') && (
                     <button className={`tab-btn ${activeTab === 'pendentes' ? 'active' : ''}`} onClick={() => setActiveTab('pendentes')}
                         style={{ position: 'relative' }}>
-                        <ExclamationCircle size={16} /> Pendentes
+                        <ExclamationCircle size={16} /> {t('dashboardStaff.pending')}
                         {((pendentes.fichas_avaliacao?.length || 0) + (pendentes.fichas_psicologia?.length || 0) +
                           (pendentes.fichas_terapia_fala?.length || 0) + (pendentes.fichas_nutricao?.length || 0) + (pendentes.documentos?.length || 0)) > 0 && (
                             <span style={{
@@ -380,7 +382,7 @@ export function DashboardStaff() {
                 {(user.role === 'admin' || user.role === 'administrativo') && (
                     <button className={`tab-btn ${activeTab === 'consultas-pendentes' ? 'active' : ''}`} onClick={() => setActiveTab('consultas-pendentes')}
                         style={{ position: 'relative' }}>
-                        <ClockHistory size={16} /> Consultas Pendentes
+                        <ClockHistory size={16} /> {t('dashboardStaff.pendingConsultations')}
                         {consultasPendentes.length > 0 && (
                             <span style={{
                                 background: '#ef4444', color: 'white', borderRadius: '50%',
@@ -395,7 +397,7 @@ export function DashboardStaff() {
                 )}
                 {user.role === 'admin' && (
                     <button className={`tab-btn ${activeTab === 'admin' ? 'active' : ''}`} onClick={() => setActiveTab('admin')}>
-                        <Gear size={16} /> Administração
+                        <Gear size={16} /> {t('dashboardStaff.administration')}
                     </button>
                 )}
             </div>
@@ -453,11 +455,11 @@ export function DashboardStaff() {
                                                     cancelada: { bg: '#f3f4f6', color: '#6b7280' },
                                                 };
                                                 const estadoLabels = {
-                                                    agendada: 'Agendada',
-                                                    realizada: 'Realizada',
-                                                    faltou_justificada: 'Faltou (justif.)',
-                                                    faltou_injustificada: 'Faltou (injustif.)',
-                                                    cancelada: 'Cancelada',
+                                                    agendada: t('attendance.status.scheduled') || 'Agendada',
+                                                    realizada: t('attendance.status.completed') || 'Realizada',
+                                                    faltou_justificada: t('attendance.status.absenceJustified') || 'Faltou (justif.)',
+                                                    faltou_injustificada: t('attendance.status.absenceUnjustified') || 'Faltou (injustif.)',
+                                                    cancelada: t('attendance.status.cancelled') || 'Cancelada',
                                                 };
                                                 const sc = estadoColors[c.estado] || { bg: '#f3f4f6', color: '#374151' };
                                                 return (
@@ -479,23 +481,23 @@ export function DashboardStaff() {
                                                                         disabled={loading}
                                                                         onClick={() => handleMarcarEstado(c.id, 'realizada')}
                                                                     >
-                                                                        <CheckLg size={13} /> Presente
+                                                                        <CheckLg size={13} /> {t('attendance.present')}
                                                                     </button>
                                                                     <button
                                                                         className="btn btn-secondary btn-sm"
                                                                         disabled={loading}
                                                                         onClick={() => handleMarcarEstado(c.id, 'faltou_justificada')}
-                                                                        title="Falta Justificada"
+                                                                        title={t('attendance.justifiedAbsence')}
                                                                     >
-                                                                        FJ
+                                                                        {t('attendance.short.justified') || 'FJ'}
                                                                     </button>
                                                                     <button
                                                                         className="btn btn-secondary btn-sm"
                                                                         disabled={loading}
                                                                         onClick={() => handleMarcarEstado(c.id, 'faltou_injustificada')}
-                                                                        title="Falta Injustificada"
+                                                                        title={t('attendance.unjustifiedAbsence')}
                                                                     >
-                                                                        FI
+                                                                        {t('attendance.short.unjustified') || 'FI'}
                                                                     </button>
                                                                 </div>
                                                             ) : (
@@ -523,20 +525,20 @@ export function DashboardStaff() {
                     return (
                     <div className="admin-section">
                         <div className="section-header">
-                            <h2><FileText size={20} /> Fichas Clínicas</h2>
+                            <h2><FileText size={20} /> {t('records.title')}</h2>
                             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                                 <input
                                     type="text"
-                                    placeholder="Pesquisar por utente..."
+                                    placeholder={t('records.searchPlaceholder')}
                                     value={fichasSearch}
                                     onChange={e => setFichasSearch(e.target.value)}
                                     style={{ padding: '6px 12px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 14, width: 220 }}
                                 />
                                 <button className={`btn-secondary ${fichasTab === 'avaliacao' ? 'active' : ''}`} onClick={() => { setFichasTab('avaliacao'); setFichasSearch(''); }} style={{ fontWeight: fichasTab === 'avaliacao' ? 700 : 400 }}>
-                                    Avaliação ({fichasAvaliacaoFiltradas.length})
+                                    {t('records.tabs.evaluation', { count: fichasAvaliacaoFiltradas.length })}
                                 </button>
                                 <button className={`btn-secondary ${fichasTab === 'ficheiros' ? 'active' : ''}`} onClick={() => { setFichasTab('ficheiros'); setFichasSearch(''); }} style={{ fontWeight: fichasTab === 'ficheiros' ? 700 : 400 }}>
-                                    Ficheiros ({documentosFiltrados.length})
+                                    {t('records.tabs.files', { count: documentosFiltrados.length })}
                                 </button>
                             </div>
                         </div>
@@ -550,8 +552,8 @@ export function DashboardStaff() {
                                     <tbody>
                                         {fichasAvaliacaoFiltradas.length === 0 ? (
                                             <tr><td colSpan={6} style={{ textAlign: 'center', color: '#6b7280' }}>
-                                                {fichasSearch ? `Nenhum resultado para "${fichasSearch}"` : 'Nenhuma ficha de avaliação'}
-                                            </td></tr>
+                                                    {fichasSearch ? t('records.noResultsFor', { query: fichasSearch }) : t('records.noEvaluations')}
+                                                </td></tr>
                                         ) : fichasAvaliacaoFiltradas.map(f => (
                                             <tr key={`${f._formTipo}-${f.id}`}>
                                                 <td>{f.nome_completo || '—'}</td>
@@ -560,11 +562,11 @@ export function DashboardStaff() {
                                                 <td>{f._formTipo || '—'}</td>
                                                 <td>{f.created_at ? new Date(f.created_at).toLocaleDateString('pt-PT') : '—'}</td>
                                                 <td style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                                                    <button className="btn-icon" title="Ver ficha" onClick={() => {
+                                                    <button className="btn-icon" title={t('records.viewRecord') || 'Ver ficha'} onClick={() => {
                                                         const tipo = f._formTipo === 'Psicologia' ? 'psicologia' : f._formTipo === 'Terapia da Fala' ? 'terapia-fala' : f._formTipo === 'Nutrição' ? 'nutricao' : 'avaliacao';
                                                         navigate(`/fichas-${tipo}/${f.id}`);
                                                     }}><Eye size={16} /></button>
-                                                    <button className="btn-icon" onClick={() => handleDeleteFicha(f.id, f.nome_completo, f._formTipo)} style={{ color: '#ef4444' }} title="Apagar ficha"><Trash size={16} /></button>
+                                                    <button className="btn-icon" onClick={() => handleDeleteFicha(f.id, f.nome_completo, f._formTipo)} style={{ color: '#ef4444' }} title={t('records.deleteRecord') || 'Apagar ficha'}><Trash size={16} /></button>
                                                 </td>
                                             </tr>
                                         ))}
@@ -582,15 +584,15 @@ export function DashboardStaff() {
                                     <tbody>
                                         {documentosFiltrados.length === 0 ? (
                                             <tr><td colSpan={5} style={{ textAlign: 'center', color: '#6b7280' }}>
-                                                {fichasSearch ? `Nenhum resultado para "${fichasSearch}"` : 'Nenhum ficheiro carregado'}
-                                            </td></tr>
+                                                            {fichasSearch ? t('records.noResultsFor', { query: fichasSearch }) : t('records.noFiles')}
+                                                        </td></tr>
                                         ) : documentosFiltrados.map(d => (
                                             <tr key={d.id}>
                                                 <td style={{ maxWidth: 250, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.nome_arquivo}</td>
                                                 <td>{d.utente_nome || '—'}</td>
                                                 <td>{d.data_consulta || '—'}</td>
                                                 <td>{d.created_at || '—'}</td>
-                                                <td><button className="btn-icon" title="Descarregar" onClick={() => handleDownload(d)}><Download size={16} /></button></td>
+                                                <td><button className="btn-icon" title={t('records.download') || 'Descarregar'} onClick={() => handleDownload(d)}><Download size={16} /></button></td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -612,11 +614,11 @@ export function DashboardStaff() {
                         </div>
                         <div className="alunos-container">
                             <div className="alunos-card">
-                                <h3><Book size={18} /> Meus Alunos ({meuAlunos.length})</h3>
+                                <h3><Book size={18} /> {t('students.my') + ' (' + meuAlunos.length + ')'}</h3>
                                 {loadingAlunos ? (
-                                    <p className="loading">A carregar alunos...</p>
+                                    <p className="loading">{t('common.loading') || 'A carregar alunos...'}</p>
                                 ) : meuAlunos.length === 0 ? (
-                                    <p className="empty-state">Ainda não tens alunos associados.</p>
+                                    <p className="empty-state">{t('students.noneYet') || 'Ainda não tens alunos associados.'}</p>
                                 ) : (
                                     <div className="alunos-grid">
                                         {meuAlunos.map(aluno => (
@@ -718,15 +720,15 @@ export function DashboardStaff() {
                 {activeTab === 'admin' && user.role === 'admin' && (
                     <div className="admin-section">
                         {/* Stats */}
-                        <h2 style={{ marginBottom: 16 }}><BarChart size={20} /> Estatísticas</h2>
+                        <h2 style={{ marginBottom: 16 }}><BarChart size={20} /> {t('admin.stats.title') || 'Estatísticas'}</h2>
                         {stats ? (
                             <div className="consultas-stats-bar" style={{ marginBottom: 32 }}>
-                                <StatCard icon={<People size={20} />} label="Utentes ativos" value={stats.total_utentes} />
-                                <StatCard icon={<PersonFill size={20} />} label="Terapeutas" value={stats.total_terapeutas} />
-                                <StatCard icon={<CalendarDate size={20} />} label="Consultas hoje" value={stats.consultas_hoje} />
-                                <StatCard icon={<CalendarDate size={20} />} label="Esta semana" value={stats.consultas_semana} />
-                                <StatCard icon={<ClipboardData size={20} />} label="Agendadas" value={stats.consultas_agendadas} />
-                                <StatCard icon={<ExclamationCircle size={20} />} label="Taxa de faltas" value={`${(stats.taxa_faltas || 0).toFixed(1)}%`} />
+                                <StatCard icon={<People size={20} />} label={t('admin.stats.activePatients') || 'Utentes ativos'} value={stats.total_utentes} />
+                                <StatCard icon={<PersonFill size={20} />} label={t('admin.stats.therapists') || 'Terapeutas'} value={stats.total_terapeutas} />
+                                <StatCard icon={<CalendarDate size={20} />} label={t('admin.stats.today') || 'Consultas hoje'} value={stats.consultas_hoje} />
+                                <StatCard icon={<CalendarDate size={20} />} label={t('admin.stats.thisWeek') || 'Esta semana'} value={stats.consultas_semana} />
+                                <StatCard icon={<ClipboardData size={20} />} label={t('admin.stats.scheduled') || 'Agendadas'} value={stats.consultas_agendadas} />
+                                <StatCard icon={<ExclamationCircle size={20} />} label={t('admin.stats.absenceRate') || 'Taxa de faltas'} value={`${(stats.taxa_faltas || 0).toFixed(1)}%`} />
                             </div>
                         ) : (
                             <p style={{ color: '#6b7280', marginBottom: 32 }}>A carregar estatísticas...</p>
@@ -734,39 +736,39 @@ export function DashboardStaff() {
 
                         {/* Staff users */}
                         <div className="section-header" style={{ marginBottom: 16 }}>
-                            <h2><Person size={20} /> Utilizadores/Staff</h2>
+                            <h2><Person size={20} /> {t('admin.staff.title')}</h2>
                             <button className="btn-primary" onClick={() => setShowCreateStaff(!showCreateStaff)}>
-                                <PlusLg size={14} /> Criar utilizador
+                                <PlusLg size={14} /> {t('admin.staff.createUser')}
                             </button>
                         </div>
 
                         {showCreateStaff && (
                             <div className="admin-card" style={{ marginBottom: 20 }}>
-                                <h3>Novo utilizador de staff</h3>
+                                <h3>{t('admin.staff.newUserTitle')}</h3>
                                 {staffError && <p className="alert alert-error">{staffError}</p>}
                                 <form onSubmit={handleCreateStaff} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                                     <div className="form-group">
-                                        <label>Nome</label>
+                                        <label>{t('admin.staff.form.name')}</label>
                                         <input type="text" value={staffForm.nome} onChange={e => setStaffForm(f => ({ ...f, nome: e.target.value }))} required />
                                     </div>
                                     <div className="form-group">
-                                        <label>Email</label>
+                                        <label>{t('admin.staff.form.email')}</label>
                                         <input type="email" value={staffForm.email} onChange={e => setStaffForm(f => ({ ...f, email: e.target.value }))} required />
                                     </div>
                                     <div className="form-group">
-                                        <label>Password</label>
+                                        <label>{t('admin.staff.form.password')}</label>
                                         <input type="password" value={staffForm.password} onChange={e => setStaffForm(f => ({ ...f, password: e.target.value }))} minLength={8} required />
                                     </div>
                                     <div className="form-group">
-                                        <label>Função</label>
+                                        <label>{t('admin.staff.form.role')}</label>
                                         <select value={staffForm.role} onChange={e => setStaffForm(f => ({ ...f, role: e.target.value }))}>
-                                            <option value="administrativo">Administrativo</option>
-                                            <option value="terapeuta">Terapeuta</option>
+                                            <option value="administrativo">{t('admin.staff.roles.administrative')}</option>
+                                            <option value="terapeuta">{t('admin.staff.roles.therapist')}</option>
                                         </select>
                                     </div>
                                     <div style={{ gridColumn: '1/-1', display: 'flex', gap: 8 }}>
-                                        <button type="submit" className="btn-primary" disabled={staffLoading}>{staffLoading ? 'A criar...' : 'Criar conta'}</button>
-                                        <button type="button" className="btn-secondary" onClick={() => setShowCreateStaff(false)}>Cancelar</button>
+                                        <button type="submit" className="btn-primary" disabled={staffLoading}>{staffLoading ? t('admin.staff.form.creating') : t('admin.staff.form.create')}</button>
+                                        <button type="button" className="btn-secondary" onClick={() => setShowCreateStaff(false)}>{t('common.cancel')}</button>
                                     </div>
                                 </form>
                             </div>
@@ -853,11 +855,11 @@ export function DashboardStaff() {
                                                                     <td style={{ display: 'flex', gap: 6 }}>
                                                                         <button className="btn btn-primary" style={{ padding: '4px 10px', fontSize: 13 }}
                                                                             onClick={() => handleValidarFicha(f._tipo, f.id, 'aprovar')}>
-                                                                            <CheckCircle size={14} /> Aprovar
+                                                                            <CheckCircle size={14} /> {t('common.approve')}
                                                                         </button>
                                                                         <button className="btn btn-danger" style={{ padding: '4px 10px', fontSize: 13 }}
                                                                             onClick={() => handleValidarFicha(f._tipo, f.id, 'rejeitar')}>
-                                                                            <XCircle size={14} /> Rejeitar
+                                                                            <XCircle size={14} /> {t('common.reject')}
                                                                         </button>
                                                                     </td>
                                                                 </tr>
@@ -890,11 +892,11 @@ export function DashboardStaff() {
                                                                     <td style={{ display: 'flex', gap: 6 }}>
                                                                         <button className="btn btn-primary" style={{ padding: '4px 10px', fontSize: 13 }}
                                                                             onClick={() => handleValidarDocumento(d.id, 'aprovar')}>
-                                                                            <CheckCircle size={14} /> Aprovar
+                                                                            <CheckCircle size={14} /> {t('common.approve')}
                                                                         </button>
                                                                         <button className="btn btn-danger" style={{ padding: '4px 10px', fontSize: 13 }}
                                                                             onClick={() => handleValidarDocumento(d.id, 'rejeitar')}>
-                                                                            <XCircle size={14} /> Rejeitar
+                                                                            <XCircle size={14} /> {t('common.reject')}
                                                                         </button>
                                                                     </td>
                                                                 </tr>
@@ -948,14 +950,14 @@ export function DashboardStaff() {
                                                     )}
                                                 </td>
                                                 <td style={{ display: 'flex', gap: 6 }}>
-                                                    <button className="btn btn-primary" style={{ padding: '4px 10px', fontSize: 13 }}
-                                                        onClick={() => handleValidarConsulta(cp.id, 'aprovar')}>
-                                                        <CheckCircle size={14} /> Aprovar
-                                                    </button>
-                                                    <button className="btn btn-danger" style={{ padding: '4px 10px', fontSize: 13 }}
-                                                        onClick={() => handleValidarConsulta(cp.id, 'rejeitar')}>
-                                                        <XCircle size={14} /> Rejeitar
-                                                    </button>
+                                                                        <button className="btn btn-primary" style={{ padding: '4px 10px', fontSize: 13 }}
+                                                                            onClick={() => handleValidarConsulta(cp.id, 'aprovar')}>
+                                                                            <CheckCircle size={14} /> {t('common.approve')}
+                                                                        </button>
+                                                                        <button className="btn btn-danger" style={{ padding: '4px 10px', fontSize: 13 }}
+                                                                            onClick={() => handleValidarConsulta(cp.id, 'rejeitar')}>
+                                                                            <XCircle size={14} /> {t('common.reject')}
+                                                                        </button>
                                                 </td>
                                             </tr>
                                         ))}
