@@ -91,6 +91,7 @@ func main() {
 	routes.RegisterAuthRoutes(r)
 	routes.RegisterElevenLabsRoutes(r)
 
+	r.POST("/agente/consultas", controllers.CreateConsulta)
 	r.GET("/areas-clinicas", controllers.GetAreasClinicas)
 
 	auth := r.Group("/")
