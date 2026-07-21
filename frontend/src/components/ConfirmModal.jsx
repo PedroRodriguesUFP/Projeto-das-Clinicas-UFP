@@ -1,6 +1,10 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
-export function ConfirmModal({ open, title, message, onConfirm, onCancel, danger = false, confirmLabel = 'Confirmar', cancelLabel = 'Cancelar' }) {
+export function ConfirmModal({ open, title, message, onConfirm, onCancel, danger = false, confirmLabel, cancelLabel }) {
+  const { t } = useTranslation();
+  const confirmLabelText = confirmLabel || t('confirm');
+  const cancelLabelText = cancelLabel || t('cancel');
   useEffect(() => {
     if (!open) return;
     const handleKey = (e) => { if (e.key === 'Escape') onCancel(); };
@@ -27,14 +31,14 @@ export function ConfirmModal({ open, title, message, onConfirm, onCancel, danger
         </p>
         <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
           <button className="btn btn-secondary" onClick={onCancel}>
-            {cancelLabel}
+            {cancelLabelText}
           </button>
           <button
             className={`btn ${danger ? 'btn-danger' : 'btn-primary'}`}
             onClick={onConfirm}
             autoFocus
           >
-            {confirmLabel}
+            {confirmLabelText}
           </button>
         </div>
       </div>

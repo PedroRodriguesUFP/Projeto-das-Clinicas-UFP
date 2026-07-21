@@ -176,6 +176,40 @@
   left: auto;
 }
 
+.language-switcher {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.language-option {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #6b7280;
+  padding: 6px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.language-option:hover {
+  background: #f3f4f6;
+  color: var(--ufp-primary);
+  border-color: #d1d5db;
+}
+
+.language-option.active {
+  background: var(--ufp-primary);
+  color: white;
+  border-color: var(--ufp-primary);
+}
+
+.navbar-language-switcher {
+  margin-left: 8px;
+}
+
 .navbar-login-btn {
   background: var(--ufp-primary);
   color: white;

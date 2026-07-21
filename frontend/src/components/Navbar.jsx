@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { CalendarDate, PlusLg, ArrowLeftRight } from 'react-bootstrap-icons';
+import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from './LanguageSwitcher.jsx';
 import '../styles/navbar.css';
 
 export function Navbar() {
@@ -15,6 +17,7 @@ export function Navbar() {
     logout();
     navigate('/login');
   };
+  const { t } = useTranslation();
 
   return (
     <nav className="navbar">
@@ -43,12 +46,12 @@ export function Navbar() {
           <div className="navbar-menu">
             {user?.role !== 'terapeuta' && (
               <button onClick={() => navigate('/')} className="navbar-link">
-                Início
+                {t('nav.home')}
               </button>
             )}
 
             <button onClick={() => navigate('/dashboard')} className="navbar-link">
-              Dashboard
+              {t('nav.dashboard')}
             </button>
 
             <div className="navbar-dropdown">
@@ -57,7 +60,7 @@ export function Navbar() {
                 onClick={() => setConsultasDropdownOpen(!consultasDropdownOpen)}
                 onBlur={() => setTimeout(() => setConsultasDropdownOpen(false), 200)}
               >
-                Consultas
+                {t('nav.consultations')}
                 <svg className="dropdown-arrow" width="10" height="6" viewBox="0 0 10 6">
                   <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="2" fill="none" />
                 </svg>
@@ -70,14 +73,14 @@ export function Navbar() {
                     navigate('/consultas');
                     setConsultasDropdownOpen(false);
                   }}>
-                    Ver Consultas
+                    {t('nav.viewConsultations')}
                   </a>
                   <a href="/calendario" className="dropdown-item" onClick={(e) => {
                     e.preventDefault();
                     navigate('/calendario');
                     setConsultasDropdownOpen(false);
                   }}>
-                    <CalendarDate size={14} /> Calendário
+                    <CalendarDate size={14} /> {t('nav.calendar')}
                   </a>
                   {(user?.role === 'utente' || user?.role === 'administrativo') && (
                     <a href="/consultas/nova" className="dropdown-item" onClick={(e) => {
@@ -85,7 +88,7 @@ export function Navbar() {
                       navigate('/consultas/nova');
                       setConsultasDropdownOpen(false);
                     }}>
-                      <PlusLg size={14} /> Marcar Consulta
+                        <PlusLg size={14} /> {t('nav.bookAppointment')}
                     </a>
                   )}
                 </div>
@@ -94,7 +97,7 @@ export function Navbar() {
 
             {(user?.role === 'admin' || user?.role === 'administrativo') && (
               <button onClick={() => navigate('/utentes/transferir')} className="navbar-link">
-                <ArrowLeftRight size={14} /> Transferir Utentes
+                <ArrowLeftRight size={14} /> {t('nav.transferPatients')}
               </button>
             )}
           </div>
@@ -110,7 +113,7 @@ export function Navbar() {
                 onBlur={() => setTimeout(() => setUserDropdownOpen(false), 200)}
               >
                 <span className="user-avatar">{user.name?.charAt(0).toUpperCase() || 'U'}</span>
-                <span className="user-name">{user?.name || 'Utilizador'}</span>
+                <span className="user-name">{user?.name || t('nav.user')}</span>
                 <svg className="dropdown-arrow" width="10" height="6" viewBox="0 0 10 6">
                   <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="2" fill="none" />
                 </svg>
@@ -123,22 +126,23 @@ export function Navbar() {
                     navigate('/user');
                     setUserDropdownOpen(false);
                   }}>
-                    Perfil
+                    {t('nav.profile')}
                   </a>
                   <button className="dropdown-item logout-item" onClick={() => {
                     handleLogout();
                     setUserDropdownOpen(false);
                   }}>
-                    Sair
+                    {t('nav.logout')}
                   </button>
                 </div>
               )}
             </div>
           ) : (
             <button onClick={() => navigate('/login')} className="navbar-login-btn">
-              Iniciar sessão
+              {t('nav.signIn')}
             </button>
           )}
+          <LanguageSwitcher className="navbar-language-switcher" />
         </div>
       </div>
 
@@ -149,12 +153,12 @@ export function Navbar() {
             <>
               {user?.role !== 'terapeuta' && (
                 <button onClick={() => { navigate('/'); setMobileMenuOpen(false); }} className="mobile-menu-link">
-                  Início
+                  {t('nav.home')}
                 </button>
               )}
 
               <button onClick={() => { navigate('/dashboard'); setMobileMenuOpen(false); }} className="mobile-menu-link">
-                Dashboard
+                {t('nav.dashboard')}
               </button>
 
               <div className="mobile-menu-section">
@@ -162,7 +166,7 @@ export function Navbar() {
                   onClick={() => setConsultasDropdownOpen(!consultasDropdownOpen)}
                   className="mobile-menu-link"
                 >
-                  Consultas
+                  {t('nav.consultations')}
                 </button>
                 {consultasDropdownOpen && (
                   <div className="mobile-submenu">
@@ -171,14 +175,14 @@ export function Navbar() {
                       navigate('/consultas');
                       setMobileMenuOpen(false);
                     }}>
-                      Ver Consultas
+                      {t('nav.viewConsultations')}
                     </a>
                     <a href="/calendario" className="mobile-submenu-item" onClick={(e) => {
                       e.preventDefault();
                       navigate('/calendario');
                       setMobileMenuOpen(false);
                     }}>
-                      <CalendarDate size={14} /> Calendário
+                      <CalendarDate size={14} /> {t('nav.calendar')}
                     </a>
                     {(user?.role === 'utente' || user?.role === 'administrativo') && (
                       <a href="/consultas/nova" className="mobile-submenu-item" onClick={(e) => {
@@ -186,7 +190,7 @@ export function Navbar() {
                         navigate('/consultas/nova');
                         setMobileMenuOpen(false);
                       }}>
-                        <PlusLg size={14} /> Marcar Consulta
+                        <PlusLg size={14} /> {t('nav.bookAppointment')}
                       </a>
                     )}
                   </div>
@@ -232,8 +236,5 @@ export function Navbar() {
               Iniciar sessão
             </button>
           )}
-        </div>
-      )}
-    </nav>
-  );
-}
+          <div className="mobile-menu-divider"></div>
+          <LanguageSwitcher className="navbar-language-switcher" />
