@@ -55,22 +55,21 @@ export function ListaConsultas() {
 
     // Filtro por busca
     if (searchTerm) {
-      filtered = filtered.filter(
-                <tr>
-          c.utente?.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          c.terapeuta?.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          c.sala?.nome?.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter((c) =>
+        c.utente?.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.terapeuta?.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.sala?.nome?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
+    
+    // Atualiza a lista filtrada
+    setFilteredConsultas(filtered);
+  }, [consultas, filterEstado, searchTerm]);
 
-                      <span className={`status ${consulta.estado || 'agendada'}`}>
-                        {(consulta.estado || t('consultationsPage.scheduled')).charAt(0).toUpperCase() + (consulta.estado || t('consultationsPage.scheduled')).slice(1)}
-                      </span>
-                      {consulta.estado_validacao === 'pendente' && (
-                        <span style={{ display: 'block', marginTop: 4, background: '#fef3c7', color: '#92400e', borderRadius: 4, padding: '2px 8px', fontSize: 11, whiteSpace: 'nowrap' }}>
-                          {t('consultationsPage.approvePending')}
-                        </span>
-                      )}
+
+  // Função para Cancelar Consulta
+  const handleCancelar = async (id) => {
+    try {
       await cancelConsulta(id);
       setConsultas(consultas.map((c) => (c.id === id ? { ...c, estado: 'cancelada' } : c)));
       setCancelConfirm(null);
