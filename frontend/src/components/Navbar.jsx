@@ -238,3 +238,8 @@ export function Navbar() {
           )}
           <div className="mobile-menu-divider"></div>
           <LanguageSwitcher className="navbar-language-switcher" />
+        </div>
+      )}
+    </nav>  
+  );
+}
