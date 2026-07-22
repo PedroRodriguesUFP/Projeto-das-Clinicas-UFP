@@ -7,6 +7,7 @@ import { getUtenteConsultas } from '../services/utentes.jsx';
 import { getAreasClinicas } from '../services/consultas.jsx';
 import { Activity, HeartPulse, MicFill, Egg, HospitalFill } from 'react-bootstrap-icons';
 import '../styles/home.css';
+import { useTranslation } from 'react-i18next';
 
 const AREA_CONFIG = {
   fisioterapia: { icon: Activity,     desc: 'Reabilitação física e tratamento de lesões musculoesqueléticas.' },
@@ -24,6 +25,7 @@ function getAreaConfig(nome) {
 export function HomePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [consultas, setConsultas] = useState([]);
   const [especialidades, setEspecialidades] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -65,23 +67,23 @@ export function HomePage() {
           alt: 'Logo UAAPS',
           text: 'UAAPS',
         }}
-        slogan="CUIDADOS DE SAÚDE ESPECIALIZADOS"
+        slogan={t('hero.slogan')}
         title={
           <>
-            Bem-vindo à<br />
-            <span style={{ color: 'var(--ufp-primary)' }}>Unidade Académica de Aprendizagem e Prática em Saúde</span>
+            {t('hero.titleLine1')}<br />
+            <span style={{ color: 'var(--ufp-primary)' }}>{t('hero.titleLine2')}</span>
           </>
         }
-        subtitle="Acesso a profissionais especializados em Fisioterapia, Psicologia, Nutrição e Terapia da Fala. Cuidados de saúde personalizados para o seu bem-estar."
+        subtitle={t('hero.subtitle')}
         callToAction={{
-          text: "MARCAR CONSULTA",
-          href: "/consultas",
+          text: t('hero.cta'),
+          href: '/consultas',
         }}
         backgroundImage="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=1200&auto=format&fit=crop&q=80"
         contactInfo={{
-          website: "ess.fernandopessoa.pt",
-          phone: "+351 22 1234 567",
-          address: "Porto, Portugal",
+          website: t('home.website') || 'ess.fernandopessoa.pt',
+          phone: t('home.phone') || '+351 22 1234 567',
+          address: t('home.location') || 'Porto, Portugal',
         }}
       />
 
@@ -89,8 +91,8 @@ export function HomePage() {
       {user && (
         <section className="welcome-section">
           <div className="container">
-            <h2>Bem-vindo, {user?.name ?? 'utilizador'}!</h2>
-            <p>Função: <strong>{user?.role ?? '-'}</strong></p>
+            <h2>{t('home.welcomeUser', { name: user?.name ?? t('home.user') })}</h2>
+            <p>{t('home.role')}: <strong>{user?.role ?? '-'}</strong></p>
           </div>
         </section>
       )}
@@ -99,12 +101,12 @@ export function HomePage() {
       {user && (
         <section className="proximas-consultas-section">
           <div className="container">
-            <h2>Próximas Consultas</h2>
-            {loading ? (
-              <p>A carregar...</p>
-            ) : consultas.length === 0 ? (
-              <p className="empty-state">Nenhuma consulta agendada</p>
-            ) : (
+            <h2>{t('home.upcomingConsultations')}</h2>
+              {loading ? (
+                <p>{t('home.loading')}</p>
+              ) : consultas.length === 0 ? (
+                <p className="empty-state">{t('home.noAppointments')}</p>
+              ) : (
               <div className="home-consultas-list">
                 {consultas.map((consulta) => (
                   <div key={consulta.id} className="home-consulta-item">
@@ -113,7 +115,7 @@ export function HomePage() {
                       <small>{consulta.data_inicio}</small>
                     </div>
                     <span className={`status ${consulta.estado?.toLowerCase() || 'agendada'}`}>
-                      {consulta.estado || 'Agendada'}
+                      {consulta.estado || t('home.appointmentStatus')}
                     </span>
                   </div>
                 ))}
@@ -126,7 +128,7 @@ export function HomePage() {
       {/* Especialidades */}
       <section className="especialidades-section" id="especialidades">
         <div className="container">
-          <h2>Especialidades</h2>
+          <h2>{t('home.specialties')}</h2>
           <div className="especialidades-grid">
             {especialidades.map((esp) => {
               const { icon: Icon, desc } = getAreaConfig(esp.nome);
@@ -145,7 +147,7 @@ export function HomePage() {
       {/* Contactos */}
       <section className="contactos-section" id="contactos">
         <div className="container">
-          <h2>Contactos</h2>
+          <h2>{t('home.contacts')}</h2>
           <div className="contactos-grid">
             <a
               href="https://www.google.com/maps/place/Escola+Superior+de+Sa%C3%BAde+Fernando+Pessoa/@41.1729392,-8.6110556,18.17z/data=!4m14!1m7!3m6!1s0xd24644e96bfbb8d:0x1b56312fb4975696!2sUniversidade+Fernando+Pessoa!8m2!3d41.1728847!4d-8.6111563!16s%2Fm%2F02z11pb!3m5!1s0xd246592f310e125:0xd30720c344524d36!8m2!3d41.173248!4d-8.6097179!16s%2Fg%2F11smrcgq9b?entry=ttu&g_ep=EgoyMDI2MDUxMy4wIKXMDSoASAFQAw%3D%3D"
@@ -154,16 +156,16 @@ export function HomePage() {
               className="contacto-card"
               style={{ cursor: 'pointer' }}
             >
-              <h3>Localização</h3>
-              <p>UAAPS<br />Porto, Portugal</p>
+              <h3>{t('home.location')}</h3>
+              <p>UAAPS<br />{t('home.location')}</p>
             </a>
             <div className="contacto-card">
-              <h3>Telefone</h3>
-              <p>+351 22 1234 567</p>
+              <h3>{t('home.phone')}</h3>
+              <p>{t('home.phone')}</p>
             </div>
             <div className="contacto-card">
-              <h3>Email</h3>
-              <p>uaaps@ufp.pt</p>
+              <h3>{t('home.email')}</h3>
+              <p>{t('home.email') || 'uaaps@ufp.pt'}</p>
             </div>
           </div>
         </div>

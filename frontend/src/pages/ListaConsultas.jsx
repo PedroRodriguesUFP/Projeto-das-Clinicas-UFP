@@ -7,10 +7,12 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { CalendarioVisualizacao } from '../components/CalendarioVisualizacao.jsx';
 import { ModalAgendarConsultaV2 } from '../components/ModalAgendarConsultaV2.jsx';
 import '../styles/consultas.css';
+import { useTranslation } from 'react-i18next';
 
 export function ListaConsultas() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [consultas, setConsultas] = useState([]);
   const [filteredConsultas, setFilteredConsultas] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,21 +55,20 @@ export function ListaConsultas() {
 
     // Filtro por busca
     if (searchTerm) {
-      filtered = filtered.filter(
-        (c) =>
-          c.utente?.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          c.terapeuta?.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          c.sala?.nome?.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter((c) =>
+        c.utente?.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.terapeuta?.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.sala?.nome?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-
-    // Ordenar por data (próximas primeiro)
-    filtered.sort((a, b) => new Date(a.data_inicio) - new Date(b.data_inicio));
-
+    
+    // Atualiza a lista filtrada
     setFilteredConsultas(filtered);
-  }, [searchTerm, filterEstado, consultas]);
+  }, [consultas, filterEstado, searchTerm]);
 
-  const handleCancel = async (id) => {
+
+  // Função para Cancelar Consulta
+  const handleCancelar = async (id) => {
     try {
       await cancelConsulta(id);
       setConsultas(consultas.map((c) => (c.id === id ? { ...c, estado: 'cancelada' } : c)));
@@ -149,7 +150,7 @@ export function ListaConsultas() {
   };
 
   if (loading) {
-    return <div className="page">A carregar consultas...</div>;
+    return <div className="page">{t('consultationsPage.loading')}</div>;
   }
 
   const counts = {
@@ -163,23 +164,23 @@ export function ListaConsultas() {
     <div className="page gestao-consultas">
       <div className="page-header">
         <div>
-          <h1>Gestão de Consultas</h1>
+          <h1>{t('consultationsPage.pageTitle')}</h1>
         </div>
         <div className="header-actions">
           <div className="view-toggle">
             <button
               className={`view-btn ${viewMode === 'tabela' ? 'active' : ''}`}
               onClick={() => setViewMode('tabela')}
-              title="Visualizar como tabela"
+              title={t('consultationsPage.viewAsTable')}
             >
-              <ClipboardData size={14} /> Tabela
+              <ClipboardData size={14} /> {t('consultationsPage.tableView')}
             </button>
             <button
               className={`view-btn ${viewMode === 'calendario' ? 'active' : ''}`}
               onClick={() => setViewMode('calendario')}
-              title="Visualizar como calendário"
+              title={t('consultationsPage.viewAsCalendar')}
             >
-              <CalendarDate size={14} /> Calendário
+              <CalendarDate size={14} /> {t('consultationsPage.calendarView')}
             </button>
           </div>
           {canCreateConsulta && (
@@ -187,7 +188,7 @@ export function ListaConsultas() {
               className="btn btn-primary"
               onClick={() => navigate('/consultas/nova')}
             >
-              + Nova Consulta
+              {t('consultationsPage.newAppointment')}
             </button>
           )}
         </div>
@@ -204,19 +205,19 @@ export function ListaConsultas() {
       <div className="consultas-stats-bar">
         <div className={`stat-card ${filterEstado === 'todas' ? 'active' : ''}`} onClick={() => setFilterEstado('todas')}>
           <span className="stat-num">{counts.todas}</span>
-          <span className="stat-label">Total</span>
+          <span className="stat-label">{t('consultationsPage.total')}</span>
         </div>
         <div className={`stat-card ${filterEstado === 'agendada' ? 'active' : ''}`} onClick={() => setFilterEstado('agendada')}>
           <span className="stat-num">{counts.agendada}</span>
-          <span className="stat-label">Agendadas</span>
+          <span className="stat-label">{t('consultationsPage.scheduled')}</span>
         </div>
         <div className={`stat-card ${filterEstado === 'realizada' ? 'active' : ''}`} onClick={() => setFilterEstado('realizada')}>
           <span className="stat-num">{counts.realizada}</span>
-          <span className="stat-label">Realizadas</span>
+          <span className="stat-label">{t('consultationsPage.completed')}</span>
         </div>
         <div className={`stat-card ${filterEstado === 'cancelada' ? 'active' : ''}`} onClick={() => setFilterEstado('cancelada')}>
           <span className="stat-num">{counts.cancelada}</span>
-          <span className="stat-label">Canceladas</span>
+          <span className="stat-label">{t('consultationsPage.cancelled')}</span>
         </div>
       </div>
 
@@ -224,7 +225,7 @@ export function ListaConsultas() {
         <div className="search-box">
           <input
             type="text"
-            placeholder="Pesquisar por utente, terapeuta ou sala..."
+            placeholder={t('consultationsPage.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
@@ -237,7 +238,7 @@ export function ListaConsultas() {
             className={`filter-btn ${filterEstado === 'todas' ? 'active' : ''}`}
             onClick={() => setFilterEstado('todas')}
           >
-            Todas
+            {t('consultationsPage.all')}
           </button>
           <button
             className={`filter-btn ${filterEstado === 'agendada' ? 'active' : ''}`}
@@ -262,7 +263,7 @@ export function ListaConsultas() {
 
       {filteredConsultas.length === 0 ? (
         <div className="empty-state">
-          <p>Nenhuma consulta encontrada</p>
+          <p>{t('consultationsPage.noResults')}</p>
         </div>
       ) : (
         <>
@@ -271,13 +272,13 @@ export function ListaConsultas() {
             <table className="consultas-table">
               <thead>
                 <tr>
-                  <th>Utente</th>
-                  <th>Terapeuta</th>
-                  <th className="col-area">Área Clínica</th>
-                  <th className="col-sala">Sala</th>
-                  <th>Data Início</th>
-                  <th>Estado</th>
-                  <th>Ações</th>
+                  <th>{t('consultationsPage.columns.utente')}</th>
+                  <th>{t('consultationsPage.columns.terapeuta')}</th>
+                  <th className="col-area">{t('consultationsPage.columns.area')}</th>
+                  <th className="col-sala">{t('consultationsPage.columns.sala')}</th>
+                  <th>{t('consultationsPage.columns.startDate')}</th>
+                  <th>{t('consultationsPage.columns.status')}</th>
+                  <th>{t('consultationsPage.columns.actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -290,29 +291,29 @@ export function ListaConsultas() {
                     <td>{formatDateTime(consulta.data_inicio)}</td>
                     <td>
                       <span className={`status ${consulta.estado || 'agendada'}`}>
-                        {(consulta.estado || 'agendada').charAt(0).toUpperCase() + (consulta.estado || 'agendada').slice(1)}
+                        {(consulta.estado || t('consultationsPage.scheduled')).charAt(0).toUpperCase() + (consulta.estado || t('consultationsPage.scheduled')).slice(1)}
                       </span>
                       {consulta.estado_validacao === 'pendente' && (
                         <span style={{ display: 'block', marginTop: 4, background: '#fef3c7', color: '#92400e', borderRadius: 4, padding: '2px 8px', fontSize: 11, whiteSpace: 'nowrap' }}>
-                          Pendente de aprovação
+                          {t('consultationsPage.approvePending')}
                         </span>
                       )}
                     </td>
                     <td className="actions">
-                      <button className="btn-icon btn-view" onClick={() => navigate(`/consultas/${consulta.id}/detalhes`)} title="Ver">
+                      <button className="btn-icon btn-view" onClick={() => navigate(`/consultas/${consulta.id}/detalhes`)} title={t('consultationsPage.eventViewTitle')}>
                         <Eye size={16} />
                       </button>
                       {canManageConsultas && consulta.estado !== 'cancelada' && (
                         <>
                           {canAlterEstado(consulta) && (
-                            <button className="btn-icon btn-edit" onClick={() => { setConsultaSelecionada(consulta); setEstadoModal(true); }} title="Alterar Estado">
+                            <button className="btn-icon btn-edit" onClick={() => { setConsultaSelecionada(consulta); setEstadoModal(true); }} title={t('consultationsPage.statusUpdate') || 'Alterar Estado'}>
                               <ArrowRepeat size={16} />
                             </button>
                           )}
-                          <button className="btn-icon btn-edit" onClick={() => navigate(`/consultas/${consulta.id}/editar`)} title="Editar">
+                          <button className="btn-icon btn-edit" onClick={() => navigate(`/consultas/${consulta.id}/editar`)} title={t('consultationsPage.editTitle')}>
                             <Pencil size={16} />
                           </button>
-                          <button className="btn-icon btn-delete" onClick={() => setCancelConfirm(consulta.id)} title="Cancelar">
+                          <button className="btn-icon btn-delete" onClick={() => setCancelConfirm(consulta.id)} title={t('consultationsPage.cancelTitle')}>
                             <X size={16} />
                           </button>
                         </>
@@ -371,22 +372,22 @@ export function ListaConsultas() {
 
       {/* Modal de Confirmação de Cancelar */}
       {cancelConfirm && (
-        <div className="modal-overlay">
+          <div className="modal-overlay">
           <div className="modal">
-            <h2>Confirmar Cancelamento</h2>
-            <p>Tem a certeza que deseja cancelar esta consulta?</p>
+            <h2>{t('consultationsPage.confirmCancelTitle')}</h2>
+            <p>{t('consultationsPage.confirmCancelMessage')}</p>
             <div className="modal-actions">
               <button
                 className="btn btn-secondary"
                 onClick={() => setCancelConfirm(null)}
               >
-                Não, Voltar
+                {t('cancel') || 'Não, Voltar'}
               </button>
               <button
                 className="btn btn-danger"
                 onClick={() => handleCancel(cancelConfirm)}
               >
-                Sim, Cancelar
+                {t('confirm') || 'Sim, Cancelar'}
               </button>
             </div>
           </div>
@@ -397,8 +398,8 @@ export function ListaConsultas() {
       {estadoModal && consultaSelecionada && (
         <div className="modal-overlay">
           <div className="modal">
-            <h2>Alterar Estado da Consulta</h2>
-            <p>Selecione o novo estado para a consulta:</p>
+            <h2>{t('consultationsPage.changeStatusTitle')}</h2>
+            <p>{t('consultationsPage.changeStatusPrompt')}</p>
             <div className="modal-actions" style={{ flexDirection: 'column', gap: '10px' }}>
               {consultaSelecionada.estado !== 'realizada' && (
                 <button
@@ -406,7 +407,7 @@ export function ListaConsultas() {
                   onClick={() => handleMudarEstado('realizada')}
                   style={{ width: '100%' }}
                 >
-                  <Check size={16} /> Marcar como Realizada
+                  <Check size={16} /> {t('consultationsPage.markAsCompleted')}
                 </button>
               )}
               {consultaSelecionada.estado !== 'faltou_injustificada' && (
@@ -415,7 +416,7 @@ export function ListaConsultas() {
                   onClick={() => handleMudarEstado('faltou_injustificada')}
                   style={{ width: '100%' }}
                 >
-                  <X size={16} /> Falta Injustificada
+                  <X size={16} /> {t('consultationsPage.absenceUnjustified')}
                 </button>
               )}
               {consultaSelecionada.estado !== 'faltou_justificada' && (
@@ -424,7 +425,7 @@ export function ListaConsultas() {
                   onClick={() => handleMudarEstado('faltou_justificada')}
                   style={{ width: '100%' }}
                 >
-                  <ExclamationTriangle size={16} /> Falta Justificada
+                  <ExclamationTriangle size={16} /> {t('consultationsPage.absenceJustified')}
                 </button>
               )}
               {consultaSelecionada.estado !== 'cancelada' && (
@@ -433,7 +434,7 @@ export function ListaConsultas() {
                   onClick={() => handleMudarEstado('cancelada')}
                   style={{ width: '100%' }}
                 >
-                  <X size={16} /> Cancelar
+                  <X size={16} /> {t('consultationsPage.cancelTitle')}
                 </button>
               )}
               <button
@@ -444,7 +445,7 @@ export function ListaConsultas() {
                 }}
                 style={{ width: '100%' }}
               >
-                Fechar
+                {t('common.ok') || 'Fechar'}
               </button>
             </div>
           </div>

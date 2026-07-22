@@ -3,8 +3,10 @@ import { Search, Plus, X, Trash } from 'react-bootstrap-icons';
 import { getAlunosDisponiveis, getAlunosDoProfessor, adicionarAluno, removerAluno } from '../services/terapeutas.jsx';
 import { ConfirmModal } from './ConfirmModal.jsx';
 import '../styles/gerir-alunos.css';
+import { useTranslation } from 'react-i18next';
 
 export function GerirAlunosModal({ isOpen, onClose, onSuccess }) {
+  const { t } = useTranslation();
   const [alunos, setAlunos] = useState([]);
   const [meuAlunos, setMeuAlunos] = useState([]);
   const [search, setSearch] = useState('');
@@ -31,7 +33,7 @@ export function GerirAlunosModal({ isOpen, onClose, onSuccess }) {
       setAlunos(disponiveis);
       setMeuAlunos(meus);
     } catch (err) {
-      setError('Erro ao carregar alunos');
+      setError(t('students.loadError') || 'Erro ao carregar alunos');
     } finally {
       setLoading(false);
     }
@@ -42,12 +44,12 @@ export function GerirAlunosModal({ isOpen, onClose, onSuccess }) {
       setError('');
       setSuccess('');
       await adicionarAluno(alunoId);
-      setSuccess('Aluno adicionado com sucesso!');
+      setSuccess(t('students.added') || 'Aluno adicionado com sucesso!');
       carregarAlunos();
       onSuccess?.();
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      setError('Erro ao adicionar aluno');
+      setError(t('students.addError') || 'Erro ao adicionar aluno');
     }
   };
 
@@ -61,12 +63,12 @@ export function GerirAlunosModal({ isOpen, onClose, onSuccess }) {
       setError('');
       setSuccess('');
       await removerAluno(confirmRemoveId);
-      setSuccess('Aluno removido com sucesso!');
+      setSuccess(t('students.removed') || 'Aluno removido com sucesso!');
       carregarAlunos();
       onSuccess?.();
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      setError('Erro ao remover aluno');
+      setError(t('students.removeError') || 'Erro ao remover aluno');
     } finally {
       setConfirmRemoveId(null);
     }
@@ -78,7 +80,7 @@ export function GerirAlunosModal({ isOpen, onClose, onSuccess }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>Gerir Alunos</h2>
+          <h2>{t('students.title')}</h2>
           <button className="modal-close" onClick={onClose}>
             <X size={24} />
           </button>
@@ -89,13 +91,13 @@ export function GerirAlunosModal({ isOpen, onClose, onSuccess }) {
             className={`modal-tab ${aba === 'disponiveis' ? 'active' : ''}`}
             onClick={() => setAba('disponiveis')}
           >
-            ➕ Alunos Disponíveis ({alunos.length})
+            {`${t('students.available')} (${alunos.length})`}
           </button>
           <button
             className={`modal-tab ${aba === 'meus' ? 'active' : ''}`}
             onClick={() => setAba('meus')}
           >
-            ✓ Meus Alunos ({meuAlunos.length})
+            {`${t('students.my')} (${meuAlunos.length})`}
           </button>
         </div>
 
@@ -109,7 +111,7 @@ export function GerirAlunosModal({ isOpen, onClose, onSuccess }) {
                 <Search size={20} />
                 <input
                   type="text"
-                  placeholder="Procurar aluno..."
+                  placeholder={t('students.searchPlaceholder')}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="search-input"
@@ -118,9 +120,9 @@ export function GerirAlunosModal({ isOpen, onClose, onSuccess }) {
 
               <div className="alunos-list">
                 {loading ? (
-                  <p className="loading">Carregando...</p>
+                  <p className="loading">{t('loading')}</p>
                 ) : alunos.length === 0 ? (
-                  <p className="empty">Nenhum aluno disponível</p>
+                  <p className="empty">{t('students.noAvailable')}</p>
                 ) : (
                   alunos.map(aluno => (
                     <div key={aluno.user_id} className="aluno-item">
@@ -133,7 +135,7 @@ export function GerirAlunosModal({ isOpen, onClose, onSuccess }) {
                         onClick={() => handleAdicionarAluno(aluno.user_id)}
                       >
                         <Plus size={18} />
-                        Adicionar
+                        {t('students.add')}
                       </button>
                     </div>
                   ))
@@ -145,9 +147,9 @@ export function GerirAlunosModal({ isOpen, onClose, onSuccess }) {
           {aba === 'meus' && (
             <div className="alunos-list">
               {loading ? (
-                <p className="loading">Carregando...</p>
+                <p className="loading">{t('loading')}</p>
               ) : meuAlunos.length === 0 ? (
-                <p className="empty">Ainda não adicionaste nenhum aluno</p>
+                <p className="empty">{t('students.noneYet')}</p>
               ) : (
                 meuAlunos.map(aluno => (
                   <div key={aluno.user_id} className="aluno-item">
@@ -155,9 +157,9 @@ export function GerirAlunosModal({ isOpen, onClose, onSuccess }) {
                       <p className="aluno-nome">{aluno.nome}</p>
                       <p className="aluno-email">{aluno.email}</p>
                       <p className="aluno-email" style={{ fontSize: '0.78rem', color: '#9ca3af' }}>
-                        Último acesso: {aluno.last_login_at
+                        {t('students.lastAccess')}: {aluno.last_login_at
                           ? new Date(aluno.last_login_at).toLocaleString('pt-PT')
-                          : 'Nunca'}
+                          : t('never')}
                       </p>
                     </div>
                     <button
@@ -165,7 +167,7 @@ export function GerirAlunosModal({ isOpen, onClose, onSuccess }) {
                       onClick={() => handleRemoverAluno(aluno.user_id)}
                     >
                       <Trash size={18} />
-                      Remover
+                      {t('students.remove')}
                     </button>
                   </div>
                 ))
@@ -176,8 +178,8 @@ export function GerirAlunosModal({ isOpen, onClose, onSuccess }) {
       </div>
       <ConfirmModal
         open={!!confirmRemoveId}
-        title="Remover aluno"
-        message="Tem a certeza que deseja remover este aluno?"
+        title={t('students.removeTitle')}
+        message={t('students.removeMessage')}
         danger
         onConfirm={doRemoverAluno}
         onCancel={() => setConfirmRemoveId(null)}
