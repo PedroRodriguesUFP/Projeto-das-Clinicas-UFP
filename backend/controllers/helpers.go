@@ -1,11 +1,60 @@
 package controllers
 
 import (
+	"regexp"
+	"strings"
 	"time"
 
 	"clinica-backend/config"
 	"clinica-backend/models"
 )
+
+var nonDigitOrPlus = regexp.MustCompile(`[^\d+]`)
+
+// normalizePhone normaliza um número de telemóvel para um formato E.164-like
+// (+<indicativo><número>), para que o mesmo número escrito de formas diferentes
+// (com espaços, com/sem indicativo) case sempre com o mesmo valor na BD.
+//
+// A app tem utentes de Portugal e de França, que têm formatos nacionais distintos:
+//   - Portugal: 9 dígitos, sem zero inicial (ex: 912345678)
+//   - França:   10 dígitos, com zero inicial (ex: 0612345678)
+//
+// Quando o número já vem com indicativo (+351, +33, 00351, 0033) esse é sempre respeitado.
+// Quando vem em formato nacional (sem indicativo), assume-se Portugal por defeito,
+// exceto se tiver o formato claramente francês (10 dígitos a começar por 0).
+func normalizePhone(raw string) string {
+	numero := strings.TrimSpace(raw)
+	if numero == "" {
+		return ""
+	}
+
+	// Remove tudo exceto dígitos e o "+" (espaços, traços, parênteses, etc.)
+	numero = nonDigitOrPlus.ReplaceAllString(numero, "")
+
+	// "00" internacional -> "+"
+	if strings.HasPrefix(numero, "00") {
+		numero = "+" + numero[2:]
+	}
+
+	// Já tem indicativo explícito -> mantém como está
+	if strings.HasPrefix(numero, "+") {
+		return numero
+	}
+
+	// Sem indicativo: formato nacional francês (10 dígitos, começa por 0)
+	if len(numero) == 10 && strings.HasPrefix(numero, "0") {
+		return "+33" + numero[1:]
+	}
+
+	// Sem indicativo: assume-se Portugal (9 dígitos, sem zero inicial)
+	if len(numero) == 9 {
+		return "+351" + numero
+	}
+
+	// Formato não reconhecido: devolve só os dígitos, sem indicativo assumido,
+	// para não associar números incorretamente.
+	return numero
+}
 
 // isUserAluno retorna true se o utilizador é terapeuta do tipo "aluno".
 func isUserAluno(userID uint) bool {

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"crypto/rand"
 	"log"
 	"net/http"
 	"strings"
@@ -9,6 +10,8 @@ import (
 	"clinica-backend/models"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 // AgenteConsultaRequest é o payload que o agente ElevenLabs envia.
@@ -75,12 +78,65 @@ func CreateConsultaAgente(c *gin.Context) {
 		return
 	}
 
-	// 3. Encontrar o utente pelo contacto (telefone). Assume-se que já está registado.
+	// 3. Procurar o utente pelo contacto (telefone, normalizado). Se não existir, criar automaticamente.
+	contactoNormalizado := normalizePhone(req.Contacto)
 	var utente models.Utente
-	if err := config.DB.Where("telefone = ?", req.Contacto).First(&utente).Error; err != nil {
-		log.Printf("ERRO 404: Utente não encontrado com o contacto: '%s'", req.Contacto)
-		c.JSON(http.StatusNotFound, gin.H{"error": "Não encontrámos nenhum utente registado com esse contacto"})
-		return
+	if err := config.DB.Where("telefone = ?", contactoNormalizado).First(&utente).Error; err != nil {
+		if err != gorm.ErrRecordNotFound {
+			log.Printf("ERRO BD ao procurar utente pelo contacto '%s': %v", req.Contacto, err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao procurar utente"})
+			return
+		}
+
+		log.Printf("INFO: Contacto '%s' não registado, a criar novo utente '%s' automaticamente.", req.Contacto, req.Nome)
+
+		// Password aleatória: esta conta é criada pelo agente de voz, não faz login pela app.
+		randomBytes := make([]byte, 32)
+		if _, err := rand.Read(randomBytes); err != nil {
+			log.Printf("ERRO ao gerar password aleatória: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao criar utente"})
+			return
+		}
+		passwordHash, err := bcrypt.GenerateFromPassword(randomBytes, bcrypt.DefaultCost)
+		if err != nil {
+			log.Printf("ERRO ao gerar hash de password: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao criar utente"})
+			return
+		}
+
+		novoUser := models.User{
+			Nome:          req.Nome,
+			PasswordHash:  string(passwordHash),
+			Role:          "utente",
+			Active:        true,
+			EmailVerified: true,
+		}
+		if err := config.DB.Create(&novoUser).Error; err != nil {
+			log.Printf("ERRO ao criar User para novo utente (contacto '%s'): %v", req.Contacto, err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao criar utente"})
+			return
+		}
+
+		contacto := contactoNormalizado
+		vazio := ""
+		utente = models.Utente{
+			UserID:         novoUser.ID,
+			NumeroProcesso: &vazio,
+			Telefone:       &contacto,
+			Morada:         &vazio,
+		}
+		if err := config.DB.Create(&utente).Error; err != nil {
+			log.Printf("ERRO ao criar Utente para novo user ID %d: %v", novoUser.ID, err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao criar utente"})
+			return
+		}
+
+		processo := models.ProcessoClinico{UtenteID: novoUser.ID}
+		if err := config.DB.Create(&processo).Error; err != nil {
+			log.Printf("AVISO: Erro ao criar ProcessoClinico para novo utente %d: %v", novoUser.ID, err)
+		}
+
+		log.Printf("SUCESSO: Novo utente criado via Agente -> UserID %d, Nome '%s', Contacto '%s'", utente.UserID, req.Nome, req.Contacto)
 	}
 
 	// 4. Escolher um terapeuta ativo dessa área clínica
