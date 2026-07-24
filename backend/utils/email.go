@@ -115,6 +115,92 @@ func SendVerificationEmail(toEmail, verificationCode string) error {
 	return nil
 }
 
+// SendConsultaConfirmationEmail envia email de confirmação de uma consulta agendada.
+func SendConsultaConfirmationEmail(toEmail, nomeUtente, especialidade string, dataInicio, dataFim time.Time) error {
+	dataStr := dataInicio.Format("02/01/2006")
+	horaStr := fmt.Sprintf("%s - %s", dataInicio.Format("15:04"), dataFim.Format("15:04"))
+
+	if emailConfig == nil || emailConfig.SMTPHost == "" {
+		return sendMockConsultaEmail(toEmail, nomeUtente, especialidade, dataStr, horaStr)
+	}
+
+	from := fmt.Sprintf("%s <%s>", emailConfig.FromName, emailConfig.FromEmail)
+	subject := "Confirmação de Consulta — UAAPS"
+
+	body := fmt.Sprintf(`
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<style>
+		body { font-family: Arial, sans-serif; }
+		.container { max-width: 600px; margin: 0 auto; padding: 20px; }
+		.header { background-color: #005439; color: white; padding: 20px; text-align: center; }
+		.content { padding: 20px; background-color: #f9f9f9; }
+		.details { background-color: white; border-left: 4px solid #005439; padding: 15px; margin: 20px 0; }
+		.details p { margin: 6px 0; }
+		.footer { text-align: center; font-size: 12px; color: #999; margin-top: 20px; }
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="header">
+			<h1>Consulta Agendada</h1>
+		</div>
+		<div class="content">
+			<p>Olá, %s,</p>
+			<p>A sua consulta foi registada com sucesso. Fica a aguardar confirmação da clínica.</p>
+			<div class="details">
+				<p><strong>Especialidade:</strong> %s</p>
+				<p><strong>Data:</strong> %s</p>
+				<p><strong>Hora:</strong> %s</p>
+			</div>
+			<p>Se não reconhece este agendamento, contacte-nos o mais rápido possível.</p>
+		</div>
+		<div class="footer">
+			<p>UAAPS — Unidade Académica de Aprendizagem e Prática em Saúde</p>
+		</div>
+	</div>
+</body>
+</html>
+	`, nomeUtente, especialidade, dataStr, horaStr)
+
+	headers := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n", from, toEmail, subject)
+	message := headers + body
+
+	addr := fmt.Sprintf("%s:%d", emailConfig.SMTPHost, emailConfig.SMTPPort)
+	auth := smtp.PlainAuth("", emailConfig.SMTPUser, emailConfig.SMTPPassword, emailConfig.SMTPHost)
+
+	if err := smtp.SendMail(addr, auth, emailConfig.FromEmail, []string{toEmail}, []byte(message)); err != nil {
+		fmt.Printf("❌ Erro ao enviar email de confirmação de consulta: %v\n", err)
+		return err
+	}
+
+	fmt.Printf("✓ Email de confirmação de consulta enviado para: %s\n", toEmail)
+	return nil
+}
+
+// sendMockConsultaEmail simula o envio do email de confirmação em development (mock)
+func sendMockConsultaEmail(toEmail, nomeUtente, especialidade, dataStr, horaStr string) error {
+	separator := strings.Repeat("=", 60)
+	dash := strings.Repeat("-", 60)
+
+	fmt.Println("\n" + separator)
+	fmt.Println("📧 EMAIL MOCK (Development Mode) — Confirmação de Consulta")
+	fmt.Println(separator)
+	fmt.Printf("Para: %s\n", toEmail)
+	fmt.Printf("Assunto: Confirmação de Consulta — UAAPS\n")
+	fmt.Println(dash)
+	fmt.Printf("Olá, %s,\n\n", nomeUtente)
+	fmt.Printf("Especialidade: %s\n", especialidade)
+	fmt.Printf("Data: %s\n", dataStr)
+	fmt.Printf("Hora: %s\n", horaStr)
+	fmt.Println(dash)
+	fmt.Println(separator + "\n")
+
+	return nil
+}
+
 // sendMockEmail simula o envio de email em development (mock)
 func sendMockEmail(toEmail, verificationCode string) error {
 	separator := strings.Repeat("=", 60)

@@ -5,9 +5,11 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"clinica-backend/config"
 	"clinica-backend/models"
+	"clinica-backend/utils"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -139,6 +141,12 @@ func CreateConsultaAgente(c *gin.Context) {
 		log.Printf("SUCESSO: Novo utente criado via Agente -> UserID %d, Nome '%s', Contacto '%s'", utente.UserID, req.Nome, req.Contacto)
 	}
 
+	// Recarregar com o User associado, para termos Nome/Email atualizados
+	// independentemente de o utente já existir ou ter acabado de ser criado.
+	if err := config.DB.Preload("User").First(&utente, utente.UserID).Error; err != nil {
+		log.Printf("AVISO: não foi possível recarregar dados do utente %d: %v", utente.UserID, err)
+	}
+
 	// 4. Escolher um terapeuta ativo dessa área clínica
 	var terapeuta models.Terapeuta
 	err = config.DB.
@@ -161,6 +169,15 @@ func CreateConsultaAgente(c *gin.Context) {
 	consultaMu.Lock()
 	defer consultaMu.Unlock()
 
+	// 6. Validar disponibilidade ANTES de tentar criar a consulta, para devolver
+	// uma resposta clara à IA em vez de deixar rebentar num erro genérico.
+	if haConflitoHorario(terapeuta.UserID, salaPtr, dataInicio, dataFim) {
+		log.Printf("CONFLITO: Horário já ocupado para terapeuta %d / sala %v (%s - %s)",
+			terapeuta.UserID, salaPtr, dataInicio, dataFim)
+		c.JSON(http.StatusConflict, gin.H{"erro": "Essa vaga já está ocupada, por favor escolha outro horário."})
+		return
+	}
+
 	consulta := models.Consulta{
 		UtenteID:        utente.UserID,
 		TerapeutaID:     terapeuta.UserID,
@@ -177,15 +194,30 @@ func CreateConsultaAgente(c *gin.Context) {
 	if err := config.DB.Create(&consulta).Error; err != nil {
 		msg := strings.ToLower(err.Error())
 		log.Printf("ERRO SQL AO CRIAR CONSULTA: %v", err)
+		// Rede de segurança: mesmo com a verificação prévia acima, pode haver uma
+		// corrida entre pedidos concorrentes apanhada apenas pela constraint da BD.
 		if strings.Contains(msg, "no_overlap") {
-			c.JSON(http.StatusConflict, gin.H{"error": "Horário já ocupado"})
+			c.JSON(http.StatusConflict, gin.H{"erro": "Essa vaga já está ocupada, por favor escolha outro horário."})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"erro": "Não foi possível agendar a consulta. Tente novamente mais tarde."})
 		return
 	}
 
 	log.Printf("SUCESSO: Consulta ID %d criada com sucesso via Agente!", consulta.ID)
+
+	// 7. Caminho feliz: enviar email de confirmação. Assíncrono para não atrasar
+	// a resposta à IA, e sem falhar o pedido caso o envio dê erro.
+	if utente.User.Email != "" {
+		go func(email, nome, especialidade string, inicio, fim time.Time) {
+			if err := utils.SendConsultaConfirmationEmail(email, nome, especialidade, inicio, fim); err != nil {
+				log.Printf("AVISO: Falha ao enviar email de confirmação para %s: %v", email, err)
+			}
+		}(utente.User.Email, utente.User.Nome, area.Nome, dataInicio, dataFim)
+	} else {
+		log.Printf("INFO: Utente %d sem email registado — sem envio de confirmação.", utente.UserID)
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"mensagem":    "Consulta agendada com sucesso, aguarda confirmação da clínica",
 		"consulta_id": consulta.ID,
