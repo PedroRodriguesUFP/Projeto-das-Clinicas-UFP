@@ -66,6 +66,7 @@ type RegisterRequest struct {
 	Password        string `json:"password" binding:"required,min=6"`
 	ConfirmPassword string `json:"confirm_password" binding:"required"`
 	NomeCompleto    string `json:"nome_completo" binding:"required"`
+	Telefone        string `json:"telefone"` // opcional: associa a uma conta criada pelo agente de voz
 }
 
 type GoogleLoginRequest struct {
@@ -377,40 +378,81 @@ func Register(c *gin.Context) {
 
 	// Definir expiração do código em 24 horas
 	expiresAt := time.Now().Add(24 * time.Hour)
+	telefone := normalizePhone(req.Telefone)
 
-	newUser := models.User{
-		Email:                     req.Email,
-		Nome:                      req.NomeCompleto,
-		PasswordHash:              string(hashedPassword),
-		Role:                      "utente",
-		Active:                    true,
-		EmailVerified:             false,
-		VerificationCode:          &verificationCode,
-		VerificationCodeExpiresAt: &expiresAt,
+	// Se já existe um utente com este telefone (ex: criado automaticamente pelo agente de
+	// voz ElevenLabs numa marcação anterior, sem conta associada), reaproveita-se essa conta
+	// em vez de criar um utilizador duplicado — assim mantém-se o histórico de consultas.
+	var newUser models.User
+	linkingExisting := false
+	if telefone != "" {
+		var utenteExistente models.Utente
+		if err := config.DB.Where("telefone = ?", telefone).First(&utenteExistente).Error; err == nil {
+			var userExistente models.User
+			if err := config.DB.First(&userExistente, utenteExistente.UserID).Error; err != nil {
+				log.Printf("ERRO ao carregar User associado ao telefone '%s': %v", telefone, err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao criar utilizador"})
+				return
+			}
+			if userExistente.Email != "" {
+				c.JSON(http.StatusConflict, gin.H{"error": "Este número de telemóvel já está associado a outra conta"})
+				return
+			}
+
+			userExistente.Email = req.Email
+			userExistente.Nome = req.NomeCompleto
+			userExistente.PasswordHash = string(hashedPassword)
+			userExistente.EmailVerified = false
+			userExistente.VerificationCode = &verificationCode
+			userExistente.VerificationCodeExpiresAt = &expiresAt
+			if err := config.DB.Save(&userExistente).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao associar conta existente"})
+				return
+			}
+			newUser = userExistente
+			linkingExisting = true
+			log.Printf("INFO: Registo associado a conta existente (criada via agente) -> UserID %d, telefone '%s'", newUser.ID, telefone)
+		}
 	}
 
-	if err := config.DB.Create(&newUser).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao criar utilizador"})
-		return
-	}
+	if !linkingExisting {
+		newUser = models.User{
+			Email:                     req.Email,
+			Nome:                      req.NomeCompleto,
+			PasswordHash:              string(hashedPassword),
+			Role:                      "utente",
+			Active:                    true,
+			EmailVerified:             false,
+			VerificationCode:          &verificationCode,
+			VerificationCodeExpiresAt: &expiresAt,
+		}
 
-	utente := models.Utente{
-		UserID: newUser.ID,
-	}
+		if err := config.DB.Create(&newUser).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao criar utilizador"})
+			return
+		}
 
-	if err := config.DB.Create(&utente).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao criar perfil de utente"})
-		return
-	}
+		utente := models.Utente{
+			UserID: newUser.ID,
+		}
+		if telefone != "" {
+			utente.Telefone = &telefone
+		}
 
-	processo := models.ProcessoClinico{
-		UtenteID: newUser.ID,
-		Ativo:    true,
-	}
+		if err := config.DB.Create(&utente).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao criar perfil de utente"})
+			return
+		}
 
-	if err := config.DB.Create(&processo).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao criar processo clínico"})
-		return
+		processo := models.ProcessoClinico{
+			UtenteID: newUser.ID,
+			Ativo:    true,
+		}
+
+		if err := config.DB.Create(&processo).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao criar processo clínico"})
+			return
+		}
 	}
 
 	// Enviar email de verificação (assíncrono para não bloquear a resposta)
