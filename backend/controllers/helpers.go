@@ -56,6 +56,27 @@ func normalizePhone(raw string) string {
 	return numero
 }
 
+// haConflitoHorario verifica se já existe uma consulta "agendada" que colide
+// com o intervalo [dataInicio, dataFim) para o mesmo terapeuta, ou (quando
+// salaID é dado) para a mesma sala. Usada como verificação prévia, antes do
+// INSERT, para devolver uma resposta clara em vez de deixar rebentar na
+// constraint da base de dados.
+func haConflitoHorario(terapeutaID uint, salaID *uint, dataInicio, dataFim time.Time) bool {
+	q := config.DB.Model(&models.Consulta{}).
+		Where("estado = ?", "agendada").
+		Where("data_inicio < ? AND data_fim > ?", dataFim, dataInicio)
+
+	if salaID != nil {
+		q = q.Where("terapeuta_id = ? OR sala_id = ?", terapeutaID, *salaID)
+	} else {
+		q = q.Where("terapeuta_id = ?", terapeutaID)
+	}
+
+	var count int64
+	q.Count(&count)
+	return count > 0
+}
+
 // isUserAluno retorna true se o utilizador é terapeuta do tipo "aluno".
 func isUserAluno(userID uint) bool {
 	var t models.Terapeuta
