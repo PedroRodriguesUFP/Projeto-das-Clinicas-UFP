@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -10,6 +11,7 @@ import {
   getAreasClinicas,
   downloadDocumento
 } from '../services/consultas.jsx';
+
 
 export function DetalhesConsulta() {
   const navigate = useNavigate();

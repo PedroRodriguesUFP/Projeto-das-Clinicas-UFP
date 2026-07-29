@@ -13,6 +13,7 @@ import {
   getAreasClinicas,
   uploadPdfConsulta,
   downloadDocumento,
+  deleteDocumentoConsulta,
 } from '../services/consultas.jsx';
 import { getUtenteDetails } from '../services/utentes.jsx';
 import {
@@ -782,6 +783,26 @@ export function EditarConsulta() {
                     <span style={{ fontSize: '0.8rem', color: '#6b7280' }}>
                       {new Date(doc.created_at).toLocaleDateString('pt-PT')}
                     </span>
+                    <button
+                      type="button"
+                      className="btn btn-danger btn-sm"
+                      onClick={async () => {
+                        if (window.confirm('Tens a certeza que pretendes eliminar este documento?')) {
+                          try {
+                            await deleteDocumentoConsulta(doc.id);
+                            toast.success('Documento eliminado!');
+                            // Recarregar os dados da consulta para atualizar a lista
+                            const atualizada = await getConsultaById(id);
+                            setConsulta(atualizada);
+                          } catch (err) {
+                            toast.error('Erro ao eliminar documento');
+                          }
+                        }
+                      }}
+                      style={{ background: '#ef4444', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
+                    >
+                      Eliminar
+                    </button>
                   </div>
                 ))}
               </div>

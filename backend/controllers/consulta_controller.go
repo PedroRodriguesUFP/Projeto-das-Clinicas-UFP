@@ -1265,6 +1265,27 @@ func GetDocumentos(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
+func DeleteDocumentoConsulta(c *gin.Context) {
+	docID := c.Param("doc_id")
+
+	var doc models.DocumentoConsulta
+	if err := config.DB.First(&doc, docID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Documento não encontrado"})
+		return
+	}
+
+	// Opcional: Apagar o ficheiro físico da pasta uploads
+	os.Remove("." + doc.ArquivoURL)
+
+	// Apagar da base de dados
+	if err := config.DB.Delete(&doc).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao eliminar documento"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Documento eliminado com sucesso"})
+}
+
 func ValidarDocumento(c *gin.Context) {
 	userID, err := getAuthenticatedUserID(c)
 	if err != nil {

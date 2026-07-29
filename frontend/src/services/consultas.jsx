@@ -18,6 +18,11 @@ export async function getConsultas() {
   return data;
 }
 
+export const deleteDocumentoConsulta = async (docId) => {
+  const response = await api.delete(`/documentos/${docId}`);
+  return response.data;
+};
+
 export async function getConsultaById(id) {
   const { data } = await api.get(`/consultas/${id}`);
   return data;
