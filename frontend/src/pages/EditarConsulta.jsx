@@ -12,6 +12,7 @@ import {
   getSalas,
   getAreasClinicas,
   uploadPdfConsulta,
+  downloadDocumento,
 } from '../services/consultas.jsx';
 import { getUtenteDetails } from '../services/utentes.jsx';
 import {
@@ -32,6 +33,7 @@ export function EditarConsulta() {
   const [accessDenied, setAccessDenied] = useState(false);
   const [consulta, setConsulta] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [tipoDocumentoUpload, setTipoDocumentoUpload] = useState('receita');
   const [utenteInfo, setUtenteInfo] = useState(null);
   const [fichasConsulta, setFichasConsulta] = useState([]);
   const [fichaRoute, setFichaRoute] = useState('');
@@ -258,6 +260,18 @@ export function EditarConsulta() {
   if (loading) {
     return <div className="page">A carregar...</div>;
   }
+  const handleAbrirDocumento = async (arquivoUrl) => {
+    try {
+      toast.loading('A abrir documento...', { id: 'doc-toast' });
+      const blob = await downloadDocumento(arquivoUrl);
+      const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+      window.open(url, '_blank');
+      toast.success('Documento aberto!', { id: 'doc-toast' });
+    } catch (err) {
+      console.error("Erro ao abrir documento:", err);
+      toast.error('Erro ao aceder ao documento. Sem permissão.', { id: 'doc-toast' });
+    }
+  };
 
   if (accessDenied) {
     return (
@@ -425,7 +439,7 @@ export function EditarConsulta() {
         return;
       }
 
-      await uploadPdfConsulta(consultaId, file);
+      await uploadPdfConsulta(consultaId, file, tipoDocumentoUpload);
       
       // Recarregar os dados da consulta
       const consultaAtualizada = await getConsultaById(consultaId);
@@ -434,6 +448,7 @@ export function EditarConsulta() {
       setError('');
       toast.success('Ficheiro carregado com sucesso!');
     } catch (err) {
+      console.error("ERRO COMPLETO:", err);
       setError(err?.response?.data?.error || 'Erro ao carregar ficheiro');
     } finally {
       setUploading(false);
@@ -458,7 +473,8 @@ export function EditarConsulta() {
           <h1>Editar Consulta</h1>
           {getConsultaValue(consulta, 'utente_nome') && <p>Utente: {getConsultaValue(consulta, 'utente_nome')}</p>}
         </div>
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
+        {/* Adicionei alignItems: 'center' e flexWrap aqui para o menu ficar alinhado com os botões */}
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
           {getConsultaValue(consulta, 'utente_id') && (
             <button
               className="btn btn-info"
@@ -487,6 +503,29 @@ export function EditarConsulta() {
               + Ficha Nutrição
             </button>
           )}
+          
+          {/* 👇 AQUI ESTÁ O NOVO MENU DROPDOWN 👇 */}
+          <select
+            style={{ 
+              padding: '0.5rem', 
+              borderRadius: '0.375rem', 
+              border: '1px solid #d1d5db', 
+              outline: 'none',
+              backgroundColor: 'white',
+              cursor: 'pointer'
+            }}
+            value={tipoDocumentoUpload}
+            onChange={(e) => setTipoDocumentoUpload(e.target.value)}
+            disabled={uploading}
+          >
+            <option value="receita">Receita</option>
+            <option value="exame">Exame</option>
+            <option value="justificacao">Justificação</option>
+            <option value="relatorio">Relatório Médico</option>
+            <option value="outro">Outro</option>
+          </select>
+          {/* 👆 FIM DO MENU DROPDOWN 👆 */}
+
           <button 
             className="btn btn-primary" 
             onClick={handlePdfButtonClick}
@@ -700,14 +739,41 @@ export function EditarConsulta() {
                     marginBottom: '0.5rem'
                   }}>
                     <FileTextIcon size={20} />
-                    <a
-                      href={doc.arquivo_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ flex: 1, color: '#0066cc', textDecoration: 'none' }}
+                    {/* A tag <a> antiga foi substituída por este button 👇 */}
+                    <button
+                      type="button"
+                      onClick={() => handleAbrirDocumento(doc.arquivo_url)}
+                      style={{ 
+                        flex: 1, 
+                        color: '#0066cc', 
+                        background: 'none', 
+                        border: 'none', 
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '8px',
+                        padding: 0,
+                        fontSize: '1rem',
+                        textDecoration: 'underline'
+                      }}
                     >
+                      {doc.tipo_documento && (
+                        <span style={{ 
+                          backgroundColor: '#e5e7eb', 
+                          color: '#374151', 
+                          padding: '2px 6px', 
+                          borderRadius: '4px', 
+                          fontSize: '0.7rem', 
+                          fontWeight: 'bold', 
+                          textTransform: 'uppercase',
+                          textDecoration: 'none'
+                        }}>
+                          {doc.tipo_documento}
+                        </span>
+                      )}
                       {doc.nome_arquivo}
-                    </a>
+                    </button>
                     {doc.estado === 'pendente' && (
                       <span style={{ background: '#f59e0b', color: 'white', borderRadius: 4, padding: '2px 8px', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}>
                         ⏳ Pendente

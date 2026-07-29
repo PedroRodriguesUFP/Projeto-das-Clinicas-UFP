@@ -430,7 +430,7 @@ export function UserPage() {
                 {(avatarPreview || (userDetails && userDetails.foto_url)) ? (
                   <img
                     key={`avatar-${avatarPreview || (userDetails && userDetails.foto_url)}`}
-                    src={avatarPreview || (userDetails?.foto_url ? `${import.meta.env.VITE_API_URL || 'http://localhost:8080'}${userDetails.foto_url}` : null)}
+                    src={avatarPreview || (userDetails?.foto_url ? `${import.meta.env.VITE_API_URL || 'https://api-clinicas-ufp.onrender.com'}${userDetails.foto_url}` : null)}
                     className="avatar-img"
                   />
                 ) : (

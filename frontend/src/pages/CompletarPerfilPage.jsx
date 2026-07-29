@@ -7,7 +7,7 @@ import axios from 'axios';
 import '../styles/completar-perfil.css';
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080',
+    baseURL: import.meta.env.VITE_API_URL || 'https://api-clinicas-ufp.onrender.com',
 });
 
 export function CompletarPerfilPage() {
