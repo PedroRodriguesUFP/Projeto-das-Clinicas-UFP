@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { loginRequest, loginWithGoogle, resendVerificationRequest, verifyEmailRequest } from '../services/auth.jsx';
+import { validateEmail } from '../utils/emailValidation.js';
 import { GoogleLogin } from '@react-oauth/google';
 import { Eye, EyeSlash, PersonBadgeFill, PersonFill } from 'react-bootstrap-icons';
 import '../styles/login.css';
@@ -35,6 +36,13 @@ export function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    const emailVal = validateEmail(email);
+    if (!emailVal.isValid) {
+      setError(emailVal.error);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -186,6 +194,9 @@ export function LoginPage() {
                         value={email}
                         onChange={(e) => { setEmail(e.target.value); setShowResend(false); }}
                         placeholder={t('login.emailPlaceholder')}
+                        maxLength={100}
+                        autoComplete="email"
+                        disabled={loading}
                         required
                       />
                     </label>
@@ -198,6 +209,10 @@ export function LoginPage() {
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder={t('login.passwordPlaceholder')}
+                          maxLength={72}
+                          autoComplete="current-password"
+                          spellCheck="false"
+                          disabled={loading}
                           required
                           style={{ paddingRight: 40, width: '100%', boxSizing: 'border-box' }}
                         />

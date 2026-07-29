@@ -15,6 +15,8 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/secure"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 )
 
 func main() {
@@ -45,6 +47,17 @@ func main() {
 	log.Println("Job de limpeza de contas não verificadas iniciado (executa a cada 1 hora)")
 
 	r := gin.Default()
+
+	// Registrar validador customizado `strongpassword` para aplicar política centralizada
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterValidation("strongpassword", func(fl validator.FieldLevel) bool {
+			pw := fl.Field().String()
+			if len(pw) < 15 || len(pw) > 72 {
+				return false
+			}
+			return true
+		})
+	}
 
 	allowedOrigins := []string{
 		"http://localhost:5173",

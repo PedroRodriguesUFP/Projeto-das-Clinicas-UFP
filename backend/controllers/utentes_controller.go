@@ -392,7 +392,7 @@ type CreateUtenteRequest struct {
 	Telefone       string `json:"telefone"`
 	Morada         string `json:"morada"`
 	DataNascimento string `json:"data_nascimento"` // "2000-01-15"
-	Password       string `json:"password" binding:"omitempty,min=8"`
+	Password       string `json:"password" binding:"omitempty,strongpassword"`
 }
 
 type UpdateUtenteRequest struct {

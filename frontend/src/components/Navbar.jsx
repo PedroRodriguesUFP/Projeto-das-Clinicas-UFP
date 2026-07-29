@@ -199,7 +199,7 @@ export function Navbar() {
 
               {(user?.role === 'admin' || user?.role === 'administrativo') && (
                 <button onClick={() => { navigate('/utentes/transferir'); setMobileMenuOpen(false); }} className="mobile-menu-link">
-                  <ArrowLeftRight size={14} /> Transferir Utentes
+                  <ArrowLeftRight size={14} /> {t('nav.transferPatients')}
                 </button>
               )}
 
@@ -210,7 +210,7 @@ export function Navbar() {
                 className="mobile-menu-link"
               >
                 <span className="user-avatar">{user.name?.charAt(0).toUpperCase() || 'U'}</span>
-                <span>{user?.name || 'Utilizador'}</span>
+                <span>{user?.name || t('nav.user')}</span>
               </button>
               {userDropdownOpen && (
                 <div className="mobile-submenu">
@@ -219,13 +219,13 @@ export function Navbar() {
                     navigate('/user');
                     setMobileMenuOpen(false);
                   }}>
-                    Perfil
+                    {t('nav.profile')}
                   </a>
                   <button className="mobile-submenu-item logout" onClick={() => {
                     handleLogout();
                     setMobileMenuOpen(false);
                   }}>
-                    Sair
+                    {t('nav.logout')}
                   </button>
                 </div>
               )}
@@ -233,7 +233,7 @@ export function Navbar() {
           )}
           {!user && (
             <button onClick={() => { navigate('/login'); setMobileMenuOpen(false); }} className="mobile-menu-link">
-              Iniciar sessão
+              {t('nav.signIn')}
             </button>
           )}
           <div className="mobile-menu-divider"></div>
