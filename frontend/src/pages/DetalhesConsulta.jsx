@@ -8,6 +8,7 @@ import {
   getTerapeutas,
   getSalas,
   getAreasClinicas,
+  downloadDocumento
 } from '../services/consultas.jsx';
 
 export function DetalhesConsulta() {
@@ -97,6 +98,19 @@ export function DetalhesConsulta() {
     if (!dataStr) return '-';
     const data = toUTC(dataStr);
     return data.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
+  };
+
+  const handleAbrirDocumento = async (arquivoUrl) => {
+    try {
+      toast.loading('A abrir documento...', { id: 'doc-toast' });
+      const blob = await downloadDocumento(arquivoUrl);
+      const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+      window.open(url, '_blank');
+      toast.success('Documento aberto!', { id: 'doc-toast' });
+    } catch (err) {
+      console.error("Erro ao abrir documento:", err);
+      toast.error('Erro ao aceder ao documento. Sem permissão.', { id: 'doc-toast' });
+    }
   };
 
   if (loading) {
@@ -242,14 +256,22 @@ export function DetalhesConsulta() {
                     }}
                   >
                     <FileTextIcon size={20} />
-                    <a
-                      href={doc.arquivo_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ flex: 1, color: '#0066cc', textDecoration: 'none' }}
+                    <button
+                      type="button"
+                      onClick={() => handleAbrirDocumento(doc.arquivo_url)}
+                      style={{ 
+                        flex: 1, color: '#0066cc', background: 'none', border: 'none', 
+                        textAlign: 'left', cursor: 'pointer', display: 'flex', 
+                        alignItems: 'center', gap: '8px', padding: 0, fontSize: '1rem', textDecoration: 'underline'
+                      }}
                     >
+                      {doc.tipo_documento && (
+                        <span style={{ backgroundColor: '#e5e7eb', color: '#374151', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase', textDecoration: 'none' }}>
+                          {doc.tipo_documento}
+                        </span>
+                      )}
                       {doc.nome_arquivo}
-                    </a>
+                    </button>
                     <span style={{ fontSize: '0.8rem', color: '#6b7280' }}>
                       {new Date(doc.created_at).toLocaleDateString('pt-PT')}
                     </span>
