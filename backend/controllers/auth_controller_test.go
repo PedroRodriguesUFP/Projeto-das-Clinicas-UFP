@@ -1,12 +1,14 @@
 package controllers_test
+package controllers_test
 
 import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"net" // <-- PACOTE EM FALTA ADICIONADO AQUI
+	"net"
 	"net/http"
 	"net/http/httptest"
+
 	"testing"
 
 	"clinica-backend/config"
@@ -30,7 +32,6 @@ func setupTestDB(t *testing.T) {
 	if err := config.DB.AutoMigrate(&models.User{}, &models.Terapeuta{}, &models.Utente{}, &models.ProcessoClinico{}); err != nil {
 		t.Fatalf("failed to migrate: %v", err)
 	}
-	// Removido o reset dos rate limiters manuais pois os teus testes usam IPs diferentes, não vão colidir.
 }
 
 func TestGoogleLogin_UFPNonNumeric_IsUtente(t *testing.T) {
@@ -101,12 +102,12 @@ func TestGoogleLogin_UFPNumeric_IsTerapeutaWithNumero(t *testing.T) {
 	if err := config.DB.Where("email = ?", "123456@ufp.edu.pt").First(&user).Error; err != nil {
 		t.Fatalf("expected user created, got err: %v", err)
 	}
-
-	// <-- CORREÇÃO AQUI: Mudámos "var t" para "var terapeuta"
 	var terapeuta models.Terapeuta
-	if err := config.DB.Where("user_id = ?", user.ID).First(&terapeuta).Error; err != nil {
+	if err := config.DB.Where("user_id = ?", user.ID).First(&t).Error; err != nil {
 		t.Fatalf("expected terapeuta created, got err: %v", err)
 	}
+	if terapeuta.NumeroMecanografico == nil || *terapeuta.NumeroMecanografico != "123456" {
+		t.Fatalf("expected numero_mecanografico '123456', got %v", terapeuta.NumeroMecanografico)
 	if terapeuta.NumeroMecanografico == nil || *terapeuta.NumeroMecanografico != "123456" {
 		t.Fatalf("expected numero_mecanografico '123456', got %v", terapeuta.NumeroMecanografico)
 	}
