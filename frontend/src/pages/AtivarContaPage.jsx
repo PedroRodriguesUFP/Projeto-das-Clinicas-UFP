@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { DateInput } from '../components/DateInput.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { claimUtenteAccount } from '../services/auth.jsx';
+import { validateEmail } from '../utils/emailValidation.js';
+import { validatePassword } from '../utils/passwordValidation.js';
 import { Eye, EyeSlash } from 'react-bootstrap-icons';
 
 export function AtivarContaPage() {
@@ -21,6 +23,8 @@ export function AtivarContaPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const pwVal = validatePassword(form.password);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
@@ -32,8 +36,9 @@ export function AtivarContaPage() {
 
     if (!form.numero_processo.trim()) { setError('Número de processo obrigatório'); return; }
     if (!form.data_nascimento) { setError('Data de nascimento obrigatória'); return; }
-    if (!form.email.trim()) { setError('Email obrigatório'); return; }
-    if (form.password.length < 8) { setError('A password deve ter pelo menos 8 caracteres'); return; }
+    const emailVal = validateEmail(form.email);
+    if (!emailVal.isValid) { setError(emailVal.error); return; }
+    if (!pwVal.isValid) { setError(pwVal.error); return; }
     if (form.password !== form.confirm_password) { setError('As passwords não coincidem'); return; }
 
     setLoading(true);
@@ -88,7 +93,9 @@ export function AtivarContaPage() {
                   value={form.numero_processo}
                   onChange={handleChange}
                   placeholder="Ex: PROC-2024-001"
+                  maxLength={50}
                   autoComplete="off"
+                  disabled={loading}
                 />
               </div>
 
@@ -98,6 +105,7 @@ export function AtivarContaPage() {
                   name="data_nascimento"
                   value={form.data_nascimento}
                   onChange={handleChange}
+                  disabled={loading}
                 />
               </div>
 
@@ -113,7 +121,9 @@ export function AtivarContaPage() {
                   value={form.email}
                   onChange={handleChange}
                   placeholder="email@exemplo.com"
+                  maxLength={100}
                   autoComplete="email"
+                  disabled={loading}
                 />
               </div>
 
@@ -125,8 +135,11 @@ export function AtivarContaPage() {
                     name="password"
                     value={form.password}
                     onChange={handleChange}
-                    placeholder="Mínimo 8 caracteres"
+                    placeholder="Mínimo 15 caracteres"
+                    maxLength={72}
                     autoComplete="new-password"
+                    spellCheck="false"
+                    disabled={loading}
                     style={{ paddingRight: 40, width: '100%', boxSizing: 'border-box' }}
                   />
                   <button type="button" onClick={() => setShowPassword(p => !p)} tabIndex={-1}
@@ -135,6 +148,17 @@ export function AtivarContaPage() {
                     {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+                {form.password && (
+                  <div style={{ marginTop: '6px', fontSize: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+                      <span>Força da palavra-passe:</span>
+                      <span style={{ color: pwVal.color, fontWeight: '600' }}>{pwVal.label}</span>
+                    </div>
+                    <div style={{ height: '5px', width: '100%', backgroundColor: '#e5e7eb', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${pwVal.score}%`, backgroundColor: pwVal.color, transition: 'all 0.3s ease' }} />
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="form-group">
@@ -143,10 +167,13 @@ export function AtivarContaPage() {
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
                     name="confirm_password"
-                    value={form.confirm_password}
+                    value={form.password}
                     onChange={handleChange}
                     placeholder="Repetir password"
+                    maxLength={72}
                     autoComplete="new-password"
+                    spellCheck="false"
+                    disabled={loading}
                     style={{ paddingRight: 40, width: '100%', boxSizing: 'border-box' }}
                   />
                   <button type="button" onClick={() => setShowConfirmPassword(p => !p)} tabIndex={-1}

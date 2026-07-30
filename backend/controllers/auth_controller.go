@@ -33,6 +33,18 @@ func getLoginLimiter(ip string) *rate.Limiter {
 	return l
 }
 
+// registerLimiters guarda um rate limiter por IP para registos: máximo 5 tentativas por minuto
+var registerLimiters sync.Map
+
+func getRegisterLimiter(ip string) *rate.Limiter {
+	if l, ok := registerLimiters.Load(ip); ok {
+		return l.(*rate.Limiter)
+	}
+	l := rate.NewLimiter(rate.Every(time.Minute/5), 5)
+	registerLimiters.Store(ip, l)
+	return l
+}
+
 // verifyEmailLimiters guarda um rate limiter por user_id (como string): máximo 5 tentativas por minuto
 var verifyEmailLimiters sync.Map
 
@@ -58,19 +70,20 @@ func generateVerificationCode() (string, error) {
 
 type LoginRequest struct {
 	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=6"`
+	Password string `json:"password" binding:"required,strongpassword"`
 }
 
 type RegisterRequest struct {
 	Email           string `json:"email" binding:"required,email"`
-	Password        string `json:"password" binding:"required,min=6"`
-	ConfirmPassword string `json:"confirm_password" binding:"required"`
+	Password        string `json:"password" binding:"required,strongpassword"`
+	ConfirmPassword string `json:"confirm_password" binding:"required,eqfield=Password"`
 	NomeCompleto    string `json:"nome_completo" binding:"required"`
 	Telefone        string `json:"telefone"` // opcional: associa a uma conta criada pelo agente de voz
 }
 
 type GoogleLoginRequest struct {
 	IDToken string `json:"id_token" binding:"required"`
+	Nonce   string `json:"nonce" binding:"required"`
 }
 
 type LoginResponse struct {
@@ -127,7 +140,9 @@ func Login(c *gin.Context) {
 
 	var user models.User
 
-	err := config.DB.Where("email = ?", req.Email).First(&user).Error
+	email := strings.ToLower(strings.TrimSpace(req.Email))
+
+	err := config.DB.Where("email = ?", email).First(&user).Error
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Email ou password inválidos"})
 		return
@@ -233,7 +248,14 @@ func GoogleLogin(c *gin.Context) {
 		return
 	}
 
-	claims, err := utils.VerifyGoogleToken(context.Background(), req.IDToken)
+	// Rate limit por IP — evita abuso automatizado do endpoint Google
+	if !getLoginLimiter(c.ClientIP()).Allow() {
+		c.JSON(http.StatusTooManyRequests, gin.H{"error": "Demasiadas tentativas de login. Tente novamente em breve."})
+		return
+	}
+
+	// Verificar token + nonce
+	claims, err := utils.VerifyGoogleTokenFunc(context.Background(), req.IDToken, req.Nonce)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Token Google inválido"})
 		return
@@ -244,9 +266,14 @@ func GoogleLogin(c *gin.Context) {
 		return
 	}
 
+	// Por defeito, tratar como utente. Apenas elevar para terapeuta se houver
+	// indicação de pré-aprovação (ex: endereço UFP com parte local numérica = aluno).
 	role := "utente"
 	if utils.ValidateUFPEmail(claims.Email) {
-		role = "terapeuta"
+		tipoCandidate, _ := getTipoTerapeutaFromEmail(claims.Email)
+		if tipoCandidate == "aluno" {
+			role = "terapeuta"
+		}
 	}
 
 	var user models.User
@@ -344,10 +371,22 @@ func GoogleLogin(c *gin.Context) {
 
 // Register cria uma nova conta de utilizador
 func Register(c *gin.Context) {
+	// Rate limit por IP para evitar criação em massa de contas
+	if !getRegisterLimiter(c.ClientIP()).Allow() {
+		c.JSON(http.StatusTooManyRequests, gin.H{"error": "Demasiados registos. Tente novamente em breve."})
+		return
+	}
 	var req RegisterRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados obrigatórios: email, password, confirm_password, nome_completo"})
+		return
+	}
+
+	email := strings.ToLower(strings.TrimSpace(req.Email))
+
+	if utils.IsDisposableEmail(email) || !utils.HasValidMX(email) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Domínio de email não aceite. Por favor utilize um provedor válido (ex: @ufp.edu.pt, @gmail.com, @outlook.com, @sapo.pt, @hotmail.com, etc.)"})
 		return
 	}
 
@@ -357,7 +396,7 @@ func Register(c *gin.Context) {
 	}
 
 	var existingUser models.User
-	result := config.DB.Where("email = ?", req.Email).First(&existingUser)
+	result := config.DB.Where("email = ?", email).First(&existingUser)
 	if result.Error == nil {
 		c.JSON(http.StatusConflict, gin.H{"error": "Email já registado"})
 		return
@@ -399,7 +438,7 @@ func Register(c *gin.Context) {
 				return
 			}
 
-			userExistente.Email = req.Email
+			userExistente.Email = email
 			userExistente.Nome = req.NomeCompleto
 			userExistente.PasswordHash = string(hashedPassword)
 			userExistente.EmailVerified = false
@@ -417,7 +456,7 @@ func Register(c *gin.Context) {
 
 	if !linkingExisting {
 		newUser = models.User{
-			Email:                     req.Email,
+			Email:                     email,
 			Nome:                      req.NomeCompleto,
 			PasswordHash:              string(hashedPassword),
 			Role:                      "utente",
@@ -568,7 +607,7 @@ func ClaimUtenteAccount(c *gin.Context) {
 		NumeroProcesso string `json:"numero_processo" binding:"required"`
 		DataNascimento string `json:"data_nascimento" binding:"required"`
 		Email          string `json:"email" binding:"required,email"`
-		Password       string `json:"password" binding:"required,min=8"`
+		Password       string `json:"password" binding:"required,strongpassword"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})

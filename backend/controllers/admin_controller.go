@@ -129,7 +129,7 @@ func ToggleUserActive(c *gin.Context) {
 type CreateStaffRequest struct {
 	Nome     string `json:"nome" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=8"`
+	Password string `json:"password" binding:"required,strongpassword"`
 	Role     string `json:"role" binding:"required"`
 }
 
