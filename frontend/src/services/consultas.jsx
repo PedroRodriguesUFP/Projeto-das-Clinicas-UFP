@@ -18,6 +18,11 @@ export async function getConsultas() {
   return data;
 }
 
+export const deleteDocumentoConsulta = async (docId) => {
+  const response = await api.delete(`/documentos/${docId}`);
+  return response.data;
+};
+
 export async function getConsultaById(id) {
   const { data } = await api.get(`/consultas/${id}`);
   return data;
@@ -97,9 +102,10 @@ export async function checkDisponibilidade(dataInicio, dataFim) {
   return data;
 }
 
-export async function uploadPdfConsulta(consultaId, file) {
+export const uploadPdfConsulta = async (consultaId, file, tipoDocumento = 'outro') => {
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('tipo_documento', tipoDocumento);
   
   const { data } = await api.post(`/consultas/${consultaId}/upload-pdf`, formData, {
     headers: {
@@ -148,3 +154,8 @@ export async function exportSalas(from, to) {
   a.remove();
   URL.revokeObjectURL(url);
 }
+export const downloadDocumento = async (arquivoUrl) => {
+  // O 'responseType: blob' diz ao axios para tratar a resposta como um ficheiro
+  const response = await axios.get(arquivoUrl, { responseType: 'blob' });
+  return response.data;
+};

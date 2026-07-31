@@ -172,6 +172,7 @@ func main() {
 		auth.DELETE("/fichas-nutricao/:id", middleware.RoleMiddleware("admin", "terapeuta"), controllers.DeleteFichaNutricao)
 
 		auth.GET("/documentos", middleware.RoleMiddleware("admin", "terapeuta"), controllers.GetDocumentos)
+		auth.DELETE("/documentos/:doc_id", middleware.RoleMiddleware("admin", "administrativo", "terapeuta"), controllers.DeleteDocumentoConsulta)
 		auth.PATCH("/documentos/:id/validar", middleware.RoleMiddleware("admin", "terapeuta"), controllers.ValidarDocumento)
 
 		auth.PATCH("/fichas-avaliacao/:id/validar", middleware.RoleMiddleware("admin", "terapeuta"), controllers.ValidarFichaAvaliacao)

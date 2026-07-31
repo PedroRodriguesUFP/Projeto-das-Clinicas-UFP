@@ -50,23 +50,6 @@ type UpdateConsultaRequest struct {
 	TipoConsulta  *string `json:"tipo_consulta"`
 }
 
-type ConsultaDetailResponse struct {
-	ID              uint   `json:"id"`
-	UtenteID        uint   `json:"utente_id"`
-	TerapeutaID     uint   `json:"terapeuta_id"`
-	SalaID          *uint  `json:"sala_id"`
-	AreaClinicaID   uint   `json:"area_clinica_id"`
-	DataInicio      string `json:"data_inicio"`
-	DataFim         string `json:"data_fim"`
-	Estado          string `json:"estado"`
-	TipoConsulta    string `json:"tipo_consulta"`
-	CreatedBy       uint   `json:"created_by"`
-	UtenteNome      string `json:"utente_nome"`
-	TerapeutaNome   string `json:"terapeuta_nome"`
-	SalaNome        string `json:"sala_nome"`
-	AreaClinicaNome string `json:"area_clinica_nome"`
-}
-
 func parseDateTime(value string) (time.Time, error) {
 	layouts := []string{"2006-01-02 15:04:05", "2006-01-02 15:04"}
 
@@ -189,6 +172,24 @@ func GetConsultas(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
+type ConsultaDetailResponse struct {
+	ID              uint                  `json:"id"`
+	UtenteID        uint                  `json:"utente_id"`
+	TerapeutaID     uint                  `json:"terapeuta_id"`
+	SalaID          *uint                 `json:"sala_id"`
+	AreaClinicaID   uint                  `json:"area_clinica_id"`
+	DataInicio      string                `json:"data_inicio"`
+	DataFim         string                `json:"data_fim"`
+	Estado          string                `json:"estado"`
+	TipoConsulta    string                `json:"tipo_consulta"`
+	CreatedBy       uint                  `json:"created_by"`
+	UtenteNome      string                `json:"utente_nome"`
+	TerapeutaNome   string                `json:"terapeuta_nome"`
+	SalaNome        string                `json:"sala_nome"`
+	AreaClinicaNome string                `json:"area_clinica_nome"`
+	Documentos      []models.DocumentoDTO `json:"documentos"` // OBRIGATÓRIO ESTAR AQUI
+}
+
 func GetConsultaByID(c *gin.Context) {
 	id := c.Param("id")
 
@@ -244,6 +245,20 @@ func GetConsultaByID(c *gin.Context) {
 		return
 	}
 
+	// CONVERTER DOCUMENTOS
+	var documentosDTO []models.DocumentoDTO
+	for _, doc := range consulta.Documentos {
+		documentosDTO = append(documentosDTO, models.DocumentoDTO{
+			ID:            doc.ID,
+			ArquivoURL:    doc.ArquivoURL,
+			NomeArquivo:   doc.NomeArquivo,
+			TipoDocumento: doc.TipoDocumento,
+			Estado:        doc.Estado,
+			CreatedAt:     doc.CreatedAt,
+		})
+	}
+
+	// ENVIAR RESPOSTA
 	c.JSON(http.StatusOK, ConsultaDetailResponse{
 		ID:              consulta.ID,
 		UtenteID:        consulta.UtenteID,
@@ -259,6 +274,7 @@ func GetConsultaByID(c *gin.Context) {
 		TerapeutaNome:   consulta.Terapeuta.Nome,
 		SalaNome:        consulta.Sala.Nome,
 		AreaClinicaNome: consulta.AreaClinica.Nome,
+		Documentos:      documentosDTO,
 	})
 }
 
@@ -1099,6 +1115,12 @@ func UploadPdfConsulta(c *gin.Context) {
 	randNum := rand.Intn(10000)
 	newFilename := fmt.Sprintf("%d_%d-%d-%s", randNum, consultaID, timestamp, safeFilename)
 
+	// Ler o tipo de documento enviado pelo frontend (ex: receita, exame, justificacao)
+	tipoDocumento := c.PostForm("tipo_documento")
+	if tipoDocumento == "" {
+		tipoDocumento = "outro" // Fallback seguro
+	}
+
 	// Guardar ficheiro na pasta uploads
 	uploadPath := filepath.Join("./uploads", newFilename)
 	if err := c.SaveUploadedFile(file, uploadPath); err != nil {
@@ -1116,12 +1138,13 @@ func UploadPdfConsulta(c *gin.Context) {
 
 	// Guardar informações do documento na BD
 	documento := models.DocumentoConsulta{
-		ConsultaID:  uint(consultaID),
-		ArquivoURL:  fmt.Sprintf("/uploads/%s", newFilename),
-		NomeArquivo: safeFilename,
-		UploadedBy:  userID.(uint),
-		Estado:      estadoSubmissao(userID.(uint)),
-		CreatedAt:   time.Now(),
+		ConsultaID:    uint(consultaID),
+		ArquivoURL:    fmt.Sprintf("/uploads/%s", newFilename),
+		NomeArquivo:   safeFilename,
+		UploadedBy:    userID.(uint),
+		TipoDocumento: tipoDocumento,
+		Estado:        estadoSubmissao(userID.(uint)),
+		CreatedAt:     time.Now(),
 	}
 
 	if err := config.DB.Create(&documento).Error; err != nil {
@@ -1193,13 +1216,14 @@ func ServeUploadedFile(c *gin.Context) {
 }
 
 type DocumentoListResponse struct {
-	ID           uint   `json:"id"`
-	ConsultaID   uint   `json:"consulta_id"`
-	NomeArquivo  string `json:"nome_arquivo"`
-	ArquivoURL   string `json:"arquivo_url"`
-	UtenteNome   string `json:"utente_nome"`
-	DataConsulta string `json:"data_consulta"`
-	CreatedAt    string `json:"created_at"`
+	ID            uint   `json:"id"`
+	ConsultaID    uint   `json:"consulta_id"`
+	NomeArquivo   string `json:"nome_arquivo"`
+	ArquivoURL    string `json:"arquivo_url"`
+	TipoDocumento string `json:"tipo_documento"`
+	UtenteNome    string `json:"utente_nome"`
+	DataConsulta  string `json:"data_consulta"`
+	CreatedAt     string `json:"created_at"`
 }
 
 func GetDocumentos(c *gin.Context) {
@@ -1223,11 +1247,12 @@ func GetDocumentos(c *gin.Context) {
 	var result []DocumentoListResponse
 	for _, d := range docs {
 		entry := DocumentoListResponse{
-			ID:          d.ID,
-			ConsultaID:  d.ConsultaID,
-			NomeArquivo: d.NomeArquivo,
-			ArquivoURL:  d.ArquivoURL,
-			CreatedAt:   d.CreatedAt.Format("2006-01-02"),
+			ID:            d.ID,
+			ConsultaID:    d.ConsultaID,
+			NomeArquivo:   d.NomeArquivo,
+			ArquivoURL:    d.ArquivoURL,
+			TipoDocumento: d.TipoDocumento,
+			CreatedAt:     d.CreatedAt.Format("2006-01-02"),
 		}
 		var consulta models.Consulta
 		if config.DB.Preload("Utente").First(&consulta, d.ConsultaID).Error == nil {
@@ -1238,6 +1263,27 @@ func GetDocumentos(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, result)
+}
+
+func DeleteDocumentoConsulta(c *gin.Context) {
+	docID := c.Param("doc_id")
+
+	var doc models.DocumentoConsulta
+	if err := config.DB.First(&doc, docID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Documento não encontrado"})
+		return
+	}
+
+	// Opcional: Apagar o ficheiro físico da pasta uploads
+	os.Remove("." + doc.ArquivoURL)
+
+	// Apagar da base de dados
+	if err := config.DB.Delete(&doc).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao eliminar documento"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Documento eliminado com sucesso"})
 }
 
 func ValidarDocumento(c *gin.Context) {
