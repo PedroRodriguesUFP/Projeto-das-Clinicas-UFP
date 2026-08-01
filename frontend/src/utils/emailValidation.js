@@ -18,18 +18,18 @@
  * 15. proton.me
  *
  * @param {string} email
- * @returns {{ isValid: boolean, error?: string }}
+ * @returns {{ isValid: boolean, errorKey?: string }}
  */
 export function validateEmail(email) {
   if (!email || !email.trim()) {
-    return { isValid: false, error: 'Email é obrigatório' };
+    return { isValid: false, errorKey: 'criarConta.erroEmail' };
   }
 
   const cleanEmail = email.trim().toLowerCase();
   const parts = cleanEmail.split('@');
 
   if (parts.length !== 2 || !parts[0] || !parts[1]) {
-    return { isValid: false, error: 'Formato de email inválido (ex: utilizador@gmail.com)' };
+    return { isValid: false, errorKey: 'criarConta.erroEmailInvalido' };
   }
 
   const domain = parts[1];
@@ -54,7 +54,7 @@ export function validateEmail(email) {
     default:
       return {
         isValid: false,
-        error: 'Domínio de email não aceite. Por favor utilize um provedor válido (ex: @ufp.edu.pt, @gmail.com, @outlook.com, @sapo.pt, @hotmail.com, etc.)',
+        errorKey: 'criarConta.erroEmailDominio',
       };
   }
 }
