@@ -118,4 +118,31 @@ func SeedProfessor(db *gorm.DB) {
 		log.Println("📧 Email: professor@ufp.edu.pt")
 		log.Println("🔑 Password: 123456")
 	}
+	// --- CRIAR UTENTE DE TESTE ---
+	var countUtente int64
+	DB.Model(&models.User{}).Where("email = ?", "utente@ufp.edu.pt").Count(&countUtente)
+
+	if countUtente == 0 {
+		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("ClinicaUFP@2026!"), bcrypt.DefaultCost)
+
+		userUtente := models.User{
+			Nome:          "Utente de Teste",
+			Email:         "utente@ufp.edu.pt",
+			PasswordHash:  string(hashedPassword),
+			Role:          "utente",
+			Active:        true,
+			EmailVerified: true,
+		}
+
+		if err := DB.Create(&userUtente).Error; err == nil {
+			// Criar o perfil de utente associado
+			DB.Create(&models.Utente{UserID: userUtente.ID})
+
+			// Criar o processo clínico associado
+			DB.Create(&models.ProcessoClinico{UtenteID: userUtente.ID, Ativo: true})
+
+			log.Println("🚀 UTENTE DE TESTE CRIADO COM SUCESSO!")
+			log.Println("📧 Email: utente@ufp.edu.pt")
+		}
+	}
 }

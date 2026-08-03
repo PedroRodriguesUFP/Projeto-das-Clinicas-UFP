@@ -1,5 +1,4 @@
 package controllers_test
-package controllers_test
 
 import (
 	"bytes"
@@ -108,11 +107,11 @@ func TestGoogleLogin_UFPNumeric_IsTerapeutaWithNumero(t *testing.T) {
 	}
 	if terapeuta.NumeroMecanografico == nil || *terapeuta.NumeroMecanografico != "123456" {
 		t.Fatalf("expected numero_mecanografico '123456', got %v", terapeuta.NumeroMecanografico)
-	if terapeuta.NumeroMecanografico == nil || *terapeuta.NumeroMecanografico != "123456" {
-		t.Fatalf("expected numero_mecanografico '123456', got %v", terapeuta.NumeroMecanografico)
+		if terapeuta.NumeroMecanografico == nil || *terapeuta.NumeroMecanografico != "123456" {
+			t.Fatalf("expected numero_mecanografico '123456', got %v", terapeuta.NumeroMecanografico)
+		}
 	}
 }
-
 func TestGoogleLogin_RateLimitBlocksAfterN(t *testing.T) {
 	setupTestDB(t)
 
