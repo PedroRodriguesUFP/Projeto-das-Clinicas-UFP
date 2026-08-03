@@ -10,22 +10,58 @@ import '../styles/home.css';
 import { useTranslation } from 'react-i18next';
 
 const AREA_CONFIG = {
-  fisioterapia: { icon: Activity,     desc: 'Reabilitação física e tratamento de lesões musculoesqueléticas.' },
-  psicologia:   { icon: HeartPulse,   desc: 'Apoio psicológico, avaliação e intervenção clínica.' },
-  nutricao:     { icon: Egg,          desc: 'Aconselhamento nutricional e planos alimentares personalizados.' },
-  fala:         { icon: MicFill,      desc: 'Avaliação e reabilitação de perturbações da comunicação.' },
+  fisioterapia: { icon: Activity },
+  psicologia: { icon: HeartPulse },
+  nutricao: { icon: Egg },
+  fala: { icon: MicFill },
 };
 
-function getAreaConfig(nome) {
+const AREA_LABELS = {
+  fisioterapia: { pt: 'Fisioterapia', en: 'Physiotherapy', fr: 'Kinésithérapie' },
+  psicologia: { pt: 'Psicologia', en: 'Psychology', fr: 'Psychologie' },
+  nutricao: { pt: 'Nutrição', en: 'Nutrition', fr: 'Nutrition' },
+  fala: { pt: 'Terapia da Fala', en: 'Speech Therapy', fr: 'Orthophonie' },
+};
+
+const AREA_DESCRIPTIONS = {
+  fisioterapia: {
+    pt: 'Reabilitação física e tratamento de lesões musculoesqueléticas.',
+    en: 'Physical rehabilitation and treatment of musculoskeletal injuries.',
+    fr: 'Rééducation physique et traitement des lésions musculo-squelettiques.',
+  },
+  psicologia: {
+    pt: 'Apoio psicológico, avaliação e intervenção clínica.',
+    en: 'Psychological support, assessment and clinical intervention.',
+    fr: 'Soutien psychologique, évaluation et intervention clinique.',
+  },
+  nutricao: {
+    pt: 'Aconselhamento nutricional e planos alimentares personalizados.',
+    en: 'Nutritional counseling and personalized meal plans.',
+    fr: 'Conseils nutritionnels et plans alimentaires personnalisés.',
+  },
+  fala: {
+    pt: 'Avaliação e reabilitação de perturbações da comunicação.',
+    en: 'Assessment and rehabilitation of communication disorders.',
+    fr: 'Évaluation et rééducation des troubles de la communication.',
+  },
+};
+
+function getAreaConfig(nome, language = 'pt') {
   const key = (nome || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
   const match = Object.keys(AREA_CONFIG).find(k => key.includes(k));
-  return AREA_CONFIG[match] || { icon: HospitalFill, desc: 'Cuidados de saúde especializados.' };
+  const label = AREA_LABELS[match]?.[language] || AREA_LABELS[match]?.pt || nome;
+  const desc = AREA_DESCRIPTIONS[match]?.[language] || AREA_DESCRIPTIONS[match]?.pt || 'Cuidados de saúde especializados.';
+  return {
+    icon: AREA_CONFIG[match]?.icon || HospitalFill,
+    desc,
+    label,
+  };
 }
 
 export function HomePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [consultas, setConsultas] = useState([]);
   const [especialidades, setEspecialidades] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -131,13 +167,20 @@ export function HomePage() {
           <h2>{t('home.specialties')}</h2>
           <div className="especialidades-grid">
             {especialidades.map((esp) => {
-              const { icon: Icon, desc } = getAreaConfig(esp.nome);
+              const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : i18n.resolvedLanguage?.startsWith('fr') ? 'fr' : 'pt';
+              const { icon: Icon, desc, label } = getAreaConfig(esp.nome, language);
               return (
-                <div key={esp.id} className="especialidade-card">
+                <button
+                  key={esp.id}
+                  type="button"
+                  className="especialidade-card"
+                  onClick={() => navigate(`/consultas/nova?area=${encodeURIComponent(esp.id)}`)}
+                  aria-label={t('home.agendarConsultaArea', { area: label })}
+                >
                   <div className="especialidade-icon"><Icon size={36} /></div>
-                  <h3>{esp.nome}</h3>
+                  <h3>{label}</h3>
                   <p>{desc}</p>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -150,22 +193,26 @@ export function HomePage() {
           <h2>{t('home.contacts')}</h2>
           <div className="contactos-grid">
             <a
-              href="https://www.google.com/maps/place/Escola+Superior+de+Sa%C3%BAde+Fernando+Pessoa/@41.1729392,-8.6110556,18.17z/data=!4m14!1m7!3m6!1s0xd24644e96bfbb8d:0x1b56312fb4975696!2sUniversidade+Fernando+Pessoa!8m2!3d41.1728847!4d-8.6111563!16s%2Fm%2F02z11pb!3m5!1s0xd246592f310e125:0xd30720c344524d36!8m2!3d41.173248!4d-8.6097179!16s%2Fg%2F11smrcgq9b?entry=ttu&g_ep=EgoyMDI2MDUxMy4wIKXMDSoASAFQAw%3D%3D"
+              href="https://maps.google.com/?q=Pra%C3%A7a+9+de+Abril+349+Porto"
               target="_blank"
               rel="noopener noreferrer"
               className="contacto-card"
               style={{ cursor: 'pointer' }}
             >
               <h3>{t('home.location')}</h3>
-              <p>UAAPS<br />{t('home.location')}</p>
+              <p>Praça 9 de Abril, 349<br />Porto</p>
             </a>
             <div className="contacto-card">
               <h3>{t('home.phone')}</h3>
-              <p>{t('home.phone')}</p>
+              <p>
+                <a href="tel:+351225071300">+351 22 507 1300</a>
+              </p>
             </div>
             <div className="contacto-card">
               <h3>{t('home.email')}</h3>
-              <p>{t('home.email') || 'uaaps@ufp.pt'}</p>
+              <p>
+                <a href="mailto:info@ufp.edu.pt">info@ufp.edu.pt</a>
+              </p>
             </div>
           </div>
         </div>

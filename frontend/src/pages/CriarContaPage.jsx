@@ -47,26 +47,26 @@ export function CriarContaPage() {
 
     try {
       if (!formData.nome_completo.trim()) {
-        setError('Nome completo é obrigatório');
+        setError(t('criarConta.erroNome'));
         setLoading(false);
         return;
       }
 
       const emailVal = validateEmail(formData.email);
       if (!emailVal.isValid) {
-        setError(emailVal.error);
+        setError(t(emailVal.errorKey || 'criarConta.erroEmailInvalido'));
         setLoading(false);
         return;
       }
 
       if (!pwVal.isValid) {
-        setError(pwVal.error);
+        setError(t(pwVal.errorKey || 'criarConta.erroPasswordObrigatoria'));
         setLoading(false);
         return;
       }
 
       if (formData.password !== formData.confirm_password) {
-        setError('As palavras-passe não coincidem');
+        setError(t('criarConta.erroPasswords'));
         setLoading(false);
         return;
       }
@@ -80,10 +80,10 @@ export function CriarContaPage() {
 
       setUserId(session.user_id);
       setShowVerification(true);
-      setSuccess('Código de verificação enviado para seu email. Verifique sua caixa de entrada.');
+      setSuccess(t('criarConta.codigoEnviado'));
 
     } catch (err) {
-      setError(err?.response?.data?.error || err.message || 'Falha ao criar conta');
+      setError(err?.response?.data?.error || err.message || t('criarConta.erroCriarConta'));
     } finally {
       setLoading(false);
     }
@@ -96,20 +96,20 @@ export function CriarContaPage() {
 
     try {
       if (!verificationCode.trim()) {
-        setError('Por favor insira o código de verificação');
+        setError(t('criarConta.erroCodigo'));
         setLoading(false);
         return;
       }
 
       const session = await verifyEmailRequest({ user_id: userId, code: verificationCode });
-      setSuccess('Email verificado! Bem-vindo à UAAPS!');
+      setSuccess(t('criarConta.sucessoEmailVerificado'));
       login(session);
-      
+
       setTimeout(() => {
         navigate('/dashboard');
       }, 800);
     } catch (err) {
-      setError(err?.message || 'Falha na verificação');
+      setError(err?.message || t('criarConta.erroVerificacao'));
     } finally {
       setLoading(false);
     }
@@ -190,7 +190,7 @@ export function CriarContaPage() {
                       <div style={{ marginTop: '6px', fontSize: '12px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
                           <span>{t('criarConta.forcaPP')}</span>
-                          <span style={{ color: pwVal.color, fontWeight: '600' }}>{pwVal.label}</span>
+                          <span style={{ color: pwVal.color, fontWeight: '600' }}>{t(pwVal.strengthKey)}</span>
                         </div>
                         <div style={{ height: '5px', width: '100%', backgroundColor: '#e5e7eb', borderRadius: '3px', overflow: 'hidden' }}>
                           <div style={{ height: '100%', width: `${pwVal.score}%`, backgroundColor: pwVal.color, transition: 'all 0.3s ease' }} />
@@ -270,8 +270,8 @@ export function CriarContaPage() {
           }}
         >
           <div className="login-image-content">
-            <h2>UAAPS</h2>
-            <p>Cuidados de saúde especializados com profissionais qualificados</p>
+            <h2>{t('criarConta.uaapsTitulo')}</h2>
+            <p>{t('criarConta.uaapsDescricao')}</p>
           </div>
         </div>
       </div>
