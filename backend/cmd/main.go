@@ -23,6 +23,13 @@ func main() {
 	config.LoadEnv()
 	config.ConnectDB()
 
+	config.DB.Exec(`CREATE TABLE IF NOT EXISTS notas_consulta (
+		consulta_id INTEGER PRIMARY KEY,
+		notas TEXT,
+		prescricoes_json TEXT,
+		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+	)`)
+
 	if env := config.GetEnvOptional("ENVIRONMENT", ""); env == "" {
 		log.Println("AVISO: variável ENVIRONMENT não definida — assumido 'production'. Defina ENVIRONMENT=development para ativar modo de desenvolvimento.")
 	}
@@ -114,6 +121,12 @@ func main() {
 		auth.GET("/consultas/disponibilidade/check", controllers.CheckDisponibilidade)
 		auth.GET("/consultas/pendentes", middleware.RoleMiddleware("admin", "administrativo"), controllers.GetConsultasPendentes)
 		auth.GET("/consultas/:id", controllers.GetConsultaByID)
+
+		// ---> ROTAS DE NOTAS E PRESCRIÇÃO <---
+		auth.GET("/consultas/:id/notas", middleware.RoleMiddleware("admin", "administrativo", "terapeuta", "utente"), controllers.GetNotasByConsulta)
+		auth.POST("/consultas/:id/notas", middleware.RoleMiddleware("admin", "terapeuta"), controllers.SaveNotasConsulta)
+		// -------------------------------------
+
 		auth.GET("/terapeutas/:terapeuta_id/horarios-disponiveis", middleware.RoleMiddleware("admin", "administrativo", "terapeuta", "utente"), controllers.GetHorariosDisponiveis)
 		auth.POST("/consultas", middleware.RoleMiddleware("admin", "administrativo", "terapeuta", "utente"), controllers.CreateConsulta)
 		auth.PATCH("/consultas/:id", middleware.RoleMiddleware("admin", "administrativo", "terapeuta"), controllers.UpdateConsulta)
@@ -135,10 +148,12 @@ func main() {
 
 		auth.GET("/salas", controllers.GetSalas)
 		auth.GET("/exports/sala", middleware.RoleMiddleware("admin", "administrativo", "terapeuta"), controllers.ExportOcupacaoSalas)
+
 		auth.GET("/terapeutas", middleware.RoleMiddleware("admin", "administrativo", "terapeuta", "utente"), controllers.GetTerapeutas)
 		auth.GET("/terapeutas/lista-staff", middleware.RoleMiddleware("admin", "administrativo"), controllers.GetTerapeutasStaff)
 		auth.GET("/terapeutas/area/:area_id", middleware.RoleMiddleware("admin", "administrativo", "terapeuta"), controllers.GetTerapeutasByArea)
 		auth.GET("/terapeutas/:terapeuta_id/utentes", middleware.RoleMiddleware("admin", "administrativo"), controllers.GetUtentesDeTerapeuta)
+
 		auth.GET("/alunos", middleware.RoleMiddleware("admin", "administrativo"), controllers.GetAlunos)
 		auth.GET("/alunos-disponiveis", middleware.RoleMiddleware("terapeuta"), controllers.GetAlunosDisponiveis)
 		auth.GET("/meus-alunos", middleware.RoleMiddleware("terapeuta"), controllers.GetAlunosDoProfessor)

@@ -38,7 +38,6 @@ func TestGoogleLogin_UFPNonNumeric_IsUtente(t *testing.T) {
 
 	// mock VerifyGoogleTokenFunc
 	utils.VerifyGoogleTokenFunc = func(ctx context.Context, idToken string, expectedNonce string) (*utils.GoogleTokenClaims, error) {
-		// return claims that include the provided nonce
 		return &utils.GoogleTokenClaims{Email: "john.doe@ufp.edu.pt", EmailVerified: true, Name: "John Doe", Sub: "sub-ud1", Nonce: expectedNonce}, nil
 	}
 
@@ -97,7 +96,7 @@ func TestGoogleLogin_UFPNumeric_IsTerapeutaWithNumero(t *testing.T) {
 	if resp["role"] != "terapeuta" {
 		t.Fatalf("expected role 'terapeuta', got %v", resp["role"])
 	}
-	// check terapeuta record in DB has numero_mecanografico
+
 	var user models.User
 	if err := config.DB.Where("email = ?", "123456@ufp.edu.pt").First(&user).Error; err != nil {
 		t.Fatalf("expected user created, got err: %v", err)
@@ -108,9 +107,11 @@ func TestGoogleLogin_UFPNumeric_IsTerapeutaWithNumero(t *testing.T) {
 	}
 	if terapeuta.NumeroMecanografico == nil || *terapeuta.NumeroMecanografico != "123456" {
 		t.Fatalf("expected numero_mecanografico '123456', got %v", terapeuta.NumeroMecanografico)
+		if terapeuta.NumeroMecanografico == nil || *terapeuta.NumeroMecanografico != "123456" {
+			t.Fatalf("expected numero_mecanografico '123456', got %v", terapeuta.NumeroMecanografico)
+		}
 	}
 }
-
 func TestGoogleLogin_RateLimitBlocksAfterN(t *testing.T) {
 	setupTestDB(t)
 
@@ -122,7 +123,6 @@ func TestGoogleLogin_RateLimitBlocksAfterN(t *testing.T) {
 	routes.RegisterAuthRoutes(r)
 
 	ip := "9.9.9.9:1111"
-	// perform 6 requests; limiter allows 5 per minute
 	for i := 0; i < 6; i++ {
 		body := map[string]string{"id_token": "tok-rate", "nonce": "n-rate"}
 		b, _ := json.Marshal(body)
@@ -152,7 +152,6 @@ func TestRegister_EmailValidation_MXAndDisposable(t *testing.T) {
 	r := gin.Default()
 	routes.RegisterAuthRoutes(r)
 
-	// 1. Email com domínio sem registo MX (NXDOMAIN)
 	utils.LookupMXFunc = func(domain string) ([]*net.MX, error) {
 		if domain == "gordo-dominio-que-nao-existe-123.pt" {
 			return nil, &net.DNSError{Err: "no such host", IsNotFound: true}
@@ -177,7 +176,6 @@ func TestRegister_EmailValidation_MXAndDisposable(t *testing.T) {
 		t.Fatalf("expected 400 Bad Request for non-existent MX, got %d, body: %s", w.Code, w.Body.String())
 	}
 
-	// 2. Email de serviço descartável (mailinator)
 	bodyDisposable := map[string]string{
 		"email":            "eu@mailinator.com",
 		"password":         "StrongPass123!",
@@ -195,7 +193,6 @@ func TestRegister_EmailValidation_MXAndDisposable(t *testing.T) {
 		t.Fatalf("expected 400 Bad Request for disposable email, got %d, body: %s", wDisp.Code, wDisp.Body.String())
 	}
 
-	// 3. Email com MX válido (gmail.com)
 	utils.LookupMXFunc = func(domain string) ([]*net.MX, error) {
 		return []*net.MX{{Host: "gmail-smtp-in.l.google.com.", Pref: 5}}, nil
 	}
@@ -216,7 +213,6 @@ func TestRegister_EmailValidation_MXAndDisposable(t *testing.T) {
 		t.Fatalf("expected 200 OK for valid MX email, got %d, body: %s", wValid.Code, wValid.Body.String())
 	}
 
-	// 4. Erro transitório de DNS (fail-open) -> não bloqueia registo
 	utils.LookupMXFunc = func(domain string) ([]*net.MX, error) {
 		return nil, &net.DNSError{Err: "i/o timeout", IsTimeout: true}
 	}
@@ -291,7 +287,6 @@ func TestRegisterAndLogin_EmailNormalization(t *testing.T) {
 	r := gin.Default()
 	routes.RegisterAuthRoutes(r)
 
-	// Registo com maiúsculas
 	bodyReg := map[string]string{
 		"email":            "Ana.Silva@Gmail.Com",
 		"password":         "StrongPass123!",
@@ -309,13 +304,11 @@ func TestRegisterAndLogin_EmailNormalization(t *testing.T) {
 		t.Fatalf("expected 200 OK on register, got %d, body: %s", wReg.Code, wReg.Body.String())
 	}
 
-	// Verificar se na BD ficou em minúsculas
 	var user models.User
 	if err := config.DB.Where("email = ?", "ana.silva@gmail.com").First(&user).Error; err != nil {
 		t.Fatalf("expected user created with lowercased email, got error: %v", err)
 	}
 
-	// Login com maiúsculas diferentes
 	bodyLogin := map[string]string{
 		"email":    "ANA.SILVA@GMAIL.COM",
 		"password": "StrongPass123!",
@@ -327,7 +320,6 @@ func TestRegisterAndLogin_EmailNormalization(t *testing.T) {
 	wLogin := httptest.NewRecorder()
 	r.ServeHTTP(wLogin, reqLogin)
 
-	// Nota: conta precisa de verificação de email ou devolve 206 (needs_verification), ambos são prova de credencial válida
 	if wLogin.Code != http.StatusOK && wLogin.Code != 206 {
 		t.Fatalf("expected 200 or 206 on login with upper-case email, got %d, body: %s", wLogin.Code, wLogin.Body.String())
 	}

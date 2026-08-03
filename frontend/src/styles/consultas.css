@@ -329,3 +329,89 @@
     display: none;
   }
 }
+/* TABS */
+.tabs-header {
+  display: flex;
+  gap: 1rem;
+  border-bottom: 2px solid #eee;
+  margin-bottom: 2rem;
+}
+
+.tabs-header button {
+  background: none;
+  border: none;
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px; /* Sobrepõe a borda do container */
+}
+
+.tabs-header button.active {
+  color: #007bff; /* A tua cor primária */
+  border-bottom-color: #007bff;
+}
+
+/* GRID FORMULÁRIO (MÉDICOS) */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group input, .form-group textarea {
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-family: inherit;
+}
+
+/* TABELA READ-ONLY (UTENTES) */
+.prescricao-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.prescricao-table th {
+  background-color: #f8f9fa;
+  text-align: left;
+  padding: 1rem;
+  font-weight: 600;
+  border-bottom: 2px solid #eef0f2;
+}
+
+.prescricao-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #eef0f2;
+  color: #333;
+}
+
+.observacoes-card {
+  background-color: #f8f9fa;
+  border-left: 4px solid #007bff;
+  padding: 1.5rem;
+  border-radius: 4px;
+}
+
+.observacoes-card h4 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: #495057;
+}
