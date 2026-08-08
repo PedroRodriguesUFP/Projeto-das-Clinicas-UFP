@@ -133,6 +133,11 @@ func main() {
 		auth.DELETE("/remover-aluno/:aluno_id", middleware.RoleMiddleware("terapeuta"), controllers.RemoverAluno)
 		auth.PUT("/terapeutas/area-clinica", middleware.RoleMiddleware("terapeuta"), controllers.UpdateAreaClinica)
 		auth.PUT("/terapeutas/:user_id/area-clinica", middleware.RoleMiddleware("admin", "administrativo"), controllers.UpdateAreaClinicaAdmin)
+		auth.GET("/terapeutas/minha-disponibilidade", controllers.GetMinhaDisponibilidade)
+        auth.PUT("/terapeutas/minha-disponibilidade", middleware.RoleMiddleware("terapeuta"), controllers.SetMinhaDisponibilidade)
+        auth.GET("/areas-clinicas/:id/dias-disponiveis", middleware.RoleMiddleware("admin", "administrativo", "terapeuta", "utente"), controllers.GetDiasDisponiveisArea)
+        auth.GET("/areas-clinicas/:id/horarios-disponiveis", middleware.RoleMiddleware("admin", "administrativo", "terapeuta", "utente"), controllers.GetHorariosDisponiveisArea)
+		
 
 		auth.GET("/fichas-avaliacao", middleware.RoleMiddleware("admin", "terapeuta", "utente"), controllers.GetFichasAvaliacao)
 		auth.GET("/fichas-avaliacao/:id", middleware.RoleMiddleware("admin", "terapeuta", "utente"), controllers.GetFichaAvaliacaoByID)

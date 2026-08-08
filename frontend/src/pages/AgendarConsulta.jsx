@@ -14,6 +14,7 @@ import {
 } from '../services/consultas.jsx';
 import { getUtenteDetails } from '../services/utentes.jsx';
 import '../styles/consultas.css';
+import { getHorariosDisponiveisArea } from '../services/consultas.jsx';
 
 export function AgendarConsulta() {
   const navigate = useNavigate();
@@ -140,35 +141,37 @@ export function AgendarConsulta() {
 
   // Load available slots when terapeuta + date + area are set (no sala required)
   useEffect(() => {
-    const fetchHorarios = async () => {
-      if (!form.terapeuta_id || !form.data_inicio || !form.area_clinica_id) {
+  const fetchHorarios = async () => {
+    if (isUtente) {
+      if (!form.area_clinica_id || !form.data_inicio) {
         setHorariosDisponiveis([]);
         return;
       }
-
+      setLoadingHorarios(true);
       try {
-        setLoadingHorarios(true);
-        const result = await getHorariosDisponiveis(
-          form.terapeuta_id,
-          form.data_inicio,
-          form.duracao,
-          { areaClinicaId: form.area_clinica_id }
-        );
-        const horarios = result?.horarios_disponiveis || [];
-        setHorariosDisponiveis(horarios);
-
-        if (!horarios.includes(form.hora_inicio)) {
-          setForm((prev) => ({ ...prev, hora_inicio: '' }));
-        }
-      } catch {
-        setHorariosDisponiveis([]);
+        const result = await getHorariosDisponiveisArea(form.area_clinica_id, form.data_inicio, form.duracao);
+        setHorariosDisponiveis(result.horarios_disponiveis || []);
       } finally {
         setLoadingHorarios(false);
       }
-    };
+      return;
+    }
 
-    fetchHorarios();
-  }, [form.terapeuta_id, form.data_inicio, form.duracao, form.area_clinica_id]);
+    // comportamento atual para staff (não mexer)
+    if (!form.terapeuta_id || !form.data_inicio || !form.area_clinica_id) {
+      setHorariosDisponiveis([]);
+      return;
+    }
+    setLoadingHorarios(true);
+    try {
+      const result = await getHorariosDisponiveis(form.terapeuta_id, form.data_inicio, form.duracao);
+      setHorariosDisponiveis(result.horarios_disponiveis || result || []);
+    } finally {
+      setLoadingHorarios(false);
+    }
+  };
+  fetchHorarios();
+}, [form.terapeuta_id, form.data_inicio, form.duracao, form.area_clinica_id, isUtente]);
 
   // When slot is selected, load available salas for that slot (non-utente only)
   useEffect(() => {
@@ -233,7 +236,7 @@ export function AgendarConsulta() {
     e.preventDefault();
     setError('');
 
-    if ((!isUtente && !form.utente_id) || !form.terapeuta_id || (!isUtente && !isFisioterapia && !form.sala_id) || !form.area_clinica_id || !form.data_inicio || !form.hora_inicio) {
+    if ((!isUtente && !form.utente_id) || (!isUtente && !form.terapeuta_id) || (!isUtente && !isFisioterapia && !form.sala_id) || !form.area_clinica_id || !form.data_inicio || !form.hora_inicio) {
       setError('Todos os campos são obrigatórios');
       return;
     }
@@ -257,7 +260,7 @@ export function AgendarConsulta() {
 
       const payload = {
         utente_id: utenteId,
-        terapeuta_id: parseInt(form.terapeuta_id),
+        terapeuta_id: form.terapeuta_id ? parseInt(form.terapeuta_id) : undefined,
         ...(isUtente ? {} : (form.sala_id ? { sala_id: parseInt(form.sala_id) } : {})),
         area_clinica_id: parseInt(form.area_clinica_id),
         data_inicio: formatLocalDateTime(dataInicio),
@@ -343,6 +346,8 @@ export function AgendarConsulta() {
                     </div>
                   )}
 
+
+                  {!isUtente &&(
                   <div className="form-group">
                     <label>Terapeuta *</label>
                     <select
@@ -359,6 +364,7 @@ export function AgendarConsulta() {
                       ))}
                     </select>
                   </div>
+                  )}
 
                   <div className="form-group">
                     <label>Duração (minutos) *</label>
@@ -426,11 +432,13 @@ export function AgendarConsulta() {
               </div>
 
               <div className="form-group full-width">
-                <label>Horários disponíveis do terapeuta *</label>
-                {!form.terapeuta_id || !form.data_inicio ? (
-                  <p className="helper-text">
-                    Seleciona terapeuta e data para veres os horários disponíveis.
-                  </p>
+                <label>Horários disponíveis *</label>
+                {(isUtente ? !form.area_clinica_id : !form.terapeuta_id) || !form.data_inicio ? (
+                 <p className="helper-text">
+                   {isUtente
+                    ? 'Seleciona a especialidade e a data para veres os horários disponíveis.'
+                    : 'Seleciona terapeuta e data para veres os horários disponíveis.'}
+                 </p>
                 ) : loadingHorarios ? (
                   <p className="helper-text">A carregar horários...</p>
                 ) : horariosDisponiveis.length === 0 ? (

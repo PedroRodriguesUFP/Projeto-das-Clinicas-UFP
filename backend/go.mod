@@ -5,10 +5,13 @@ go 1.25.0
 require (
 	github.com/coreos/go-oidc/v3 v3.18.0
 	github.com/gin-contrib/cors v1.7.7
+	github.com/gin-contrib/secure v1.1.3
 	github.com/gin-gonic/gin v1.12.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/joho/godotenv v1.5.1
+	github.com/xuri/excelize/v2 v2.10.1
 	golang.org/x/crypto v0.48.0
+	golang.org/x/time v0.15.0
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.31.1
 )
@@ -19,7 +22,6 @@ require (
 	github.com/bytedance/sonic/loader v0.5.0 // indirect
 	github.com/cloudwego/base64x v0.1.6 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.13 // indirect
-	github.com/gin-contrib/secure v1.1.3 // indirect
 	github.com/gin-contrib/sse v1.1.0 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
@@ -48,7 +50,6 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.3.1 // indirect
 	github.com/xuri/efp v0.0.1 // indirect
-	github.com/xuri/excelize/v2 v2.10.1 // indirect
 	github.com/xuri/nfp v0.0.2-0.20250530014748-2ddeb826f9a9 // indirect
 	go.mongodb.org/mongo-driver/v2 v2.5.0 // indirect
 	golang.org/x/arch v0.24.0 // indirect
@@ -57,6 +58,5 @@ require (
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.35.0 // indirect
-	golang.org/x/time v0.15.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )

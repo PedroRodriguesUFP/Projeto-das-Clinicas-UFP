@@ -126,6 +126,35 @@ func getRandomAvailableSalaID(areaClinicaID uint, dataInicio time.Time, dataFim 
 	return selected.ID, nil
 }
 
+func getRandomAvailableTerapeutaID(areaClinicaID uint, dataInicio, dataFim time.Time) (uint, error) {
+	dataStr := dataInicio.Format("2006-01-02")
+	horaInicio := dataInicio.Format("15:04:05")
+	horaFim := dataFim.Format("15:04:05")
+
+	var terapeutas []models.Terapeuta
+
+	err := config.DB.
+		Table("terapeutas").
+		Joins("JOIN disponibilidade_terapeuta d ON d.terapeuta_id = terapeutas.user_id").
+		Joins("JOIN users u ON u.id = terapeutas.user_id").
+		Where("terapeutas.area_clinica_id = ?", areaClinicaID).
+		Where("u.active = ?", true).
+		Where("d.data = ?", dataStr).
+		Where("d.hora_inicio <= ? AND d.hora_fim >= ?", horaInicio, horaFim).
+		Where("NOT EXISTS (SELECT 1 FROM consultas c WHERE c.terapeuta_id = terapeutas.user_id AND c.estado = 'agendada' AND c.data_inicio < ? AND c.data_fim > ?)", dataFim, dataInicio).
+		Find(&terapeutas).Error
+
+	if err != nil {
+		return 0, err
+	}
+	if len(terapeutas) == 0 {
+		return 0, errors.New("não existem terapeutas disponíveis para este horário")
+	}
+
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	return terapeutas[rng.Intn(len(terapeutas))].UserID, nil
+}
+
 func GetConsultas(c *gin.Context) {
 	var consultas []models.Consulta
 
@@ -347,9 +376,28 @@ func CreateConsulta(c *gin.Context) {
 		req.UtenteID = createdBy
 	}
 
-	if req.UtenteID == 0 || req.TerapeutaID == 0 || req.AreaClinicaID == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados obrigatórios em falta"})
-		return
+	if req.UtenteID == 0 || req.AreaClinicaID == 0 {
+    c.JSON(http.StatusBadRequest, gin.H{"error": "Dados obrigatórios em falta"})
+    return
+     }
+	if userRole != "utente" && req.TerapeutaID == 0 {
+    c.JSON(http.StatusBadRequest, gin.H{"error": "Terapeuta é obrigatório"})
+    return
+     }
+
+    if req.TerapeutaID != 0 {
+    var terapeutaArea uint
+    err := config.DB.Table("terapeutas").
+        Select("area_clinica_id").
+        Where("user_id = ?", req.TerapeutaID).
+        Scan(&terapeutaArea).Error
+
+     if err != nil || terapeutaArea != req.AreaClinicaID {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "error": "O terapeuta escolhido não pertence a esta especialidade",
+        })
+        return
+     }
 	}
 
 	dataInicio, err := parseDateTime(req.DataInicio)
@@ -383,6 +431,17 @@ func CreateConsulta(c *gin.Context) {
 			req.SalaID = randomSalaID
 		}
 	}
+
+	if userRole == "utente" && req.TerapeutaID == 0 {
+	terapeutaID, err := getRandomAvailableTerapeutaID(req.AreaClinicaID, dataInicio, dataFim)
+	if err != nil {
+		c.JSON(http.StatusConflict, gin.H{
+			"error": "Não há terapeutas disponíveis para esta especialidade neste horário.",
+		})
+		return
+	}
+	req.TerapeutaID = terapeutaID
+}
 
 	tipoConsulta := "individual"
 	if req.TipoConsulta == "grupo" {
