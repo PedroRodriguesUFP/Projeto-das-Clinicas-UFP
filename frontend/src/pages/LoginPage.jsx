@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { loginRequest, loginWithGoogle, resendVerificationRequest, verifyEmailRequest } from '../services/auth.jsx';
+import { validateEmail } from '../utils/emailValidation.js';
 import { GoogleLogin } from '@react-oauth/google';
 import { Eye, EyeSlash, PersonBadgeFill, PersonFill } from 'react-bootstrap-icons';
 import '../styles/login.css';
@@ -35,6 +36,13 @@ export function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    const emailVal = validateEmail(email);
+    if (!emailVal.isValid) {
+      setError(emailVal.error);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -50,7 +58,7 @@ export function LoginPage() {
         return;
       }
 
-      const msg = err?.response?.data?.error || err.message || 'Falha no login';
+      const msg = err?.response?.data?.error || err.message || t('login.loginError');
       setError(msg);
       if (err?.response?.status === 403 && msg.toLowerCase().includes('verif')) {
         setShowResend(true);
@@ -69,7 +77,7 @@ export function LoginPage() {
       setShowResend(false);
       setShowVerification(true);
     } catch (err) {
-      setError(err?.response?.data?.error || 'Erro ao reenviar código');
+      setError(err?.response?.data?.error || t('login.resendError'));
     } finally {
       setLoading(false);
     }
@@ -84,7 +92,7 @@ export function LoginPage() {
       login(session);
       navigate('/dashboard');
     } catch (err) {
-      setError(err?.response?.data?.error || err.message || 'Código inválido');
+      setError(err?.response?.data?.error || err.message || t('login.invalidCode'));
     } finally {
       setLoading(false);
     }
@@ -99,20 +107,20 @@ export function LoginPage() {
       login(session);
       navigate('/dashboard');
     } catch (err) {
-      setError(err?.response?.data?.error || err.message || 'Falha no login Google');
+      setError(err?.response?.data?.error || err.message || t('login.loginGoogleError'));
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleError = () => {
-    setError('Falha no login Google. Tenta novamente.');
+    setError(t('login.googleLoginError'));
   };
 
   return (
     <div className="login-page">
       <Link to="/" className="login-home-btn">
-        <img src="/images/ufp-logo.png" alt="Página inicial" />
+        <img src="/images/ufp-logo.png" alt={t('login.homeAlt')} />
       </Link>
       <div className="login-container">
         <div className="login-content">
@@ -133,16 +141,16 @@ export function LoginPage() {
                   onClick={() => setSelectedRole('staff')}
                 >
                   <PersonBadgeFill size={36} color="#059669" />
-                  <strong>Membro UFP</strong>
-                  <span>Acesso via conta Google UFP</span>
+                  <strong>{t('login.staffTitle')}</strong>
+                  <span>{t('login.staffDescription')}</span>
                 </button>
                 <button
                   className="login-role-card"
                   onClick={() => setSelectedRole('utente')}
                 >
                   <PersonFill size={36} color="#059669" />
-                  <strong>Utente</strong>
-                  <span>Acesso com email e palavra-passe</span>
+                  <strong>{t('login.patientTitle')}</strong>
+                  <span>{t('login.patientDescription')}</span>
                 </button>
               </div>
             )}
@@ -186,6 +194,9 @@ export function LoginPage() {
                         value={email}
                         onChange={(e) => { setEmail(e.target.value); setShowResend(false); }}
                         placeholder={t('login.emailPlaceholder')}
+                        maxLength={100}
+                        autoComplete="email"
+                        disabled={loading}
                         required
                       />
                     </label>
@@ -198,6 +209,10 @@ export function LoginPage() {
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder={t('login.passwordPlaceholder')}
+                          maxLength={72}
+                          autoComplete="current-password"
+                          spellCheck="false"
+                          disabled={loading}
                           required
                           style={{ paddingRight: 40, width: '100%', boxSizing: 'border-box' }}
                         />

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://api-clinicas-ufp.onrender.com',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080',
 });
 
 // Adiciona o token no header de cada requisição
@@ -17,6 +17,11 @@ export async function getConsultas() {
   const { data } = await api.get('/consultas');
   return data;
 }
+
+export const deleteDocumentoConsulta = async (docId) => {
+  const response = await api.delete(`/documentos/${docId}`);
+  return response.data;
+};
 
 export async function getConsultaById(id) {
   const { data } = await api.get(`/consultas/${id}`);
@@ -107,9 +112,10 @@ export async function checkDisponibilidade(dataInicio, dataFim) {
   return data;
 }
 
-export async function uploadPdfConsulta(consultaId, file) {
+export const uploadPdfConsulta = async (consultaId, file, tipoDocumento = 'outro') => {
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('tipo_documento', tipoDocumento);
   
   const { data } = await api.post(`/consultas/${consultaId}/upload-pdf`, formData, {
     headers: {
@@ -158,3 +164,8 @@ export async function exportSalas(from, to) {
   a.remove();
   URL.revokeObjectURL(url);
 }
+export const downloadDocumento = async (arquivoUrl) => {
+  // O 'responseType: blob' diz ao axios para tratar a resposta como um ficheiro
+  const response = await axios.get(arquivoUrl, { responseType: 'blob' });
+  return response.data;
+};

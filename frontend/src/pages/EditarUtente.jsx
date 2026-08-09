@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getUtenteDetails, updateUtente } from '../services/utentes.jsx';
 import { DateInput } from '../components/DateInput.jsx';
+import { useTranslation } from 'react-i18next';
 
 export function EditarUtente() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -33,7 +35,7 @@ export function EditarUtente() {
           data_nascimento: data.data_nascimento || '',
         });
       } catch (err) {
-        setError('Erro ao carregar dados do utente');
+        setError(t('editarUtente.loadError'));
       } finally {
         setLoading(false);
       }
@@ -72,7 +74,7 @@ export function EditarUtente() {
         <button className="btn-back" onClick={() => navigate('/utentes')}>
           ← Voltar
         </button>
-        <h1>Editar Utente</h1>
+        <h1>{t('editarUtente.title')}</h1>
       </div>
 
       <div className="form-container">
@@ -84,10 +86,10 @@ export function EditarUtente() {
         )}
 
         <form onSubmit={handleSubmit} className="card">
-          <h2>Informações Pessoais</h2>
+          <h2>{t('editarUtente.informacoesPessoais')}</h2>
 
           <div className="form-group">
-            <label>Nome Completo</label>
+            <label>{t('editarUtente.nomeCompleto')}</label>
             <input
               type="text"
               name="nome"
@@ -98,7 +100,7 @@ export function EditarUtente() {
 
           <div className="form-row">
             <div className="form-group">
-              <label>Email</label>
+              <label>{t('editarUtente.email')}</label>
               <input
                 type="email"
                 name="email"
@@ -108,7 +110,7 @@ export function EditarUtente() {
             </div>
 
             <div className="form-group">
-              <label>Data de Nascimento</label>
+              <label>{t('editarUtente.dataNascimento')}</label>
               <DateInput
                 name="data_nascimento"
                 value={form.data_nascimento}
@@ -119,7 +121,7 @@ export function EditarUtente() {
 
           <div className="form-row">
             <div className="form-group">
-              <label>Telefone</label>
+              <label>{t('editarUtente.telefone')}</label>
               <input
                 type="tel"
                 name="telefone"
@@ -129,7 +131,7 @@ export function EditarUtente() {
             </div>
 
             <div className="form-group">
-              <label>Número de Processo</label>
+              <label>{t('editarUtente.numeroProcesso')}</label>
               <input
                 type="text"
                 name="numero_processo"
@@ -140,7 +142,7 @@ export function EditarUtente() {
           </div>
 
           <div className="form-group full-width">
-            <label>Morada</label>
+            <label>{t('editarUtente.morada')}</label>
             <textarea
               name="morada"
               value={form.morada}
@@ -156,14 +158,14 @@ export function EditarUtente() {
               onClick={() => navigate('/utentes')}
               disabled={saving}
             >
-              Cancelar
+              {t('editarUtente.cancelar')}
             </button>
             <button
               type="submit"
               className="btn btn-primary"
               disabled={saving}
             >
-              {saving ? 'A guardar...' : 'Guardar Alterações'}
+              {saving ? t('editarUtente.guardando') : t('editarUtente.guardar')}
             </button>
           </div>
         </form>

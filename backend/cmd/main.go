@@ -15,11 +15,20 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/secure"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 )
 
 func main() {
 	config.LoadEnv()
 	config.ConnectDB()
+
+	config.DB.Exec(`CREATE TABLE IF NOT EXISTS notas_consulta (
+		consulta_id INTEGER PRIMARY KEY,
+		notas TEXT,
+		prescricoes_json TEXT,
+		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+	)`)
 
 	if env := config.GetEnvOptional("ENVIRONMENT", ""); env == "" {
 		log.Println("AVISO: variável ENVIRONMENT não definida — assumido 'production'. Defina ENVIRONMENT=development para ativar modo de desenvolvimento.")
@@ -45,6 +54,17 @@ func main() {
 	log.Println("Job de limpeza de contas não verificadas iniciado (executa a cada 1 hora)")
 
 	r := gin.Default()
+
+	// Registrar validador customizado `strongpassword` para aplicar política centralizada
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterValidation("strongpassword", func(fl validator.FieldLevel) bool {
+			pw := fl.Field().String()
+			if len(pw) < 15 || len(pw) > 72 {
+				return false
+			}
+			return true
+		})
+	}
 
 	allowedOrigins := []string{
 		"http://localhost:5173",
@@ -101,6 +121,12 @@ func main() {
 		auth.GET("/consultas/disponibilidade/check", controllers.CheckDisponibilidade)
 		auth.GET("/consultas/pendentes", middleware.RoleMiddleware("admin", "administrativo"), controllers.GetConsultasPendentes)
 		auth.GET("/consultas/:id", controllers.GetConsultaByID)
+
+		// ---> ROTAS DE NOTAS E PRESCRIÇÃO <---
+		auth.GET("/consultas/:id/notas", middleware.RoleMiddleware("admin", "administrativo", "terapeuta", "utente"), controllers.GetNotasByConsulta)
+		auth.POST("/consultas/:id/notas", middleware.RoleMiddleware("admin", "terapeuta"), controllers.SaveNotasConsulta)
+		// -------------------------------------
+
 		auth.GET("/terapeutas/:terapeuta_id/horarios-disponiveis", middleware.RoleMiddleware("admin", "administrativo", "terapeuta", "utente"), controllers.GetHorariosDisponiveis)
 		auth.POST("/consultas", middleware.RoleMiddleware("admin", "administrativo", "terapeuta", "utente"), controllers.CreateConsulta)
 		auth.PATCH("/consultas/:id", middleware.RoleMiddleware("admin", "administrativo", "terapeuta"), controllers.UpdateConsulta)
@@ -122,10 +148,12 @@ func main() {
 
 		auth.GET("/salas", controllers.GetSalas)
 		auth.GET("/exports/sala", middleware.RoleMiddleware("admin", "administrativo", "terapeuta"), controllers.ExportOcupacaoSalas)
+
 		auth.GET("/terapeutas", middleware.RoleMiddleware("admin", "administrativo", "terapeuta", "utente"), controllers.GetTerapeutas)
 		auth.GET("/terapeutas/lista-staff", middleware.RoleMiddleware("admin", "administrativo"), controllers.GetTerapeutasStaff)
 		auth.GET("/terapeutas/area/:area_id", middleware.RoleMiddleware("admin", "administrativo", "terapeuta"), controllers.GetTerapeutasByArea)
 		auth.GET("/terapeutas/:terapeuta_id/utentes", middleware.RoleMiddleware("admin", "administrativo"), controllers.GetUtentesDeTerapeuta)
+
 		auth.GET("/alunos", middleware.RoleMiddleware("admin", "administrativo"), controllers.GetAlunos)
 		auth.GET("/alunos-disponiveis", middleware.RoleMiddleware("terapeuta"), controllers.GetAlunosDisponiveis)
 		auth.GET("/meus-alunos", middleware.RoleMiddleware("terapeuta"), controllers.GetAlunosDoProfessor)
@@ -164,6 +192,7 @@ func main() {
 		auth.DELETE("/fichas-nutricao/:id", middleware.RoleMiddleware("admin", "terapeuta"), controllers.DeleteFichaNutricao)
 
 		auth.GET("/documentos", middleware.RoleMiddleware("admin", "terapeuta"), controllers.GetDocumentos)
+		auth.DELETE("/documentos/:doc_id", middleware.RoleMiddleware("admin", "administrativo", "terapeuta"), controllers.DeleteDocumentoConsulta)
 		auth.PATCH("/documentos/:id/validar", middleware.RoleMiddleware("admin", "terapeuta"), controllers.ValidarDocumento)
 
 		auth.PATCH("/fichas-avaliacao/:id/validar", middleware.RoleMiddleware("admin", "terapeuta"), controllers.ValidarFichaAvaliacao)

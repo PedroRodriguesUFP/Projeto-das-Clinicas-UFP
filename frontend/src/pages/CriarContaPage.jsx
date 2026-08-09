@@ -2,12 +2,16 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { registerRequest, verifyEmailRequest } from '../services/auth.jsx';
+import { validateEmail } from '../utils/emailValidation.js';
+import { validatePassword } from '../utils/passwordValidation.js';
 import { Eye, EyeSlash } from 'react-bootstrap-icons';
+import { useTranslation } from 'react-i18next';
 import '../styles/login.css';
 
 export function CriarContaPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { t } = useTranslation();
 
   const [formData, setFormData] = useState({
     nome_completo: '',
@@ -25,6 +29,8 @@ export function CriarContaPage() {
   const [verificationCode, setVerificationCode] = useState('');
   const [userId, setUserId] = useState(null);
 
+  const pwVal = validatePassword(formData.password);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -40,27 +46,27 @@ export function CriarContaPage() {
     setLoading(true);
 
     try {
-      // Validações básicas
       if (!formData.nome_completo.trim()) {
-        setError('Nome completo é obrigatório');
+        setError(t('criarConta.erroNome'));
         setLoading(false);
         return;
       }
 
-      if (!formData.email.trim()) {
-        setError('Email é obrigatório');
+      const emailVal = validateEmail(formData.email);
+      if (!emailVal.isValid) {
+        setError(t(emailVal.errorKey || 'criarConta.erroEmailInvalido'));
         setLoading(false);
         return;
       }
 
-      if (formData.password.length < 8) {
-        setError('A palavra-passe deve ter pelo menos 8 caracteres');
+      if (!pwVal.isValid) {
+        setError(t(pwVal.errorKey || 'criarConta.erroPasswordObrigatoria'));
         setLoading(false);
         return;
       }
 
       if (formData.password !== formData.confirm_password) {
-        setError('As palavras-passe não coincidem');
+        setError(t('criarConta.erroPasswords'));
         setLoading(false);
         return;
       }
@@ -74,10 +80,10 @@ export function CriarContaPage() {
 
       setUserId(session.user_id);
       setShowVerification(true);
-      setSuccess('Código de verificação enviado para seu email. Verifique sua caixa de entrada.');
+      setSuccess(t('criarConta.codigoEnviado'));
 
     } catch (err) {
-      setError(err?.response?.data?.error || err.message || 'Falha ao criar conta');
+      setError(err?.response?.data?.error || err.message || t('criarConta.erroCriarConta'));
     } finally {
       setLoading(false);
     }
@@ -90,21 +96,20 @@ export function CriarContaPage() {
 
     try {
       if (!verificationCode.trim()) {
-        setError('Por favor insira o código de verificação');
+        setError(t('criarConta.erroCodigo'));
         setLoading(false);
         return;
       }
 
       const session = await verifyEmailRequest({ user_id: userId, code: verificationCode });
-      setSuccess('Email verificado! Bem-vindo à UAAPS!');
+      setSuccess(t('criarConta.sucessoEmailVerificado'));
       login(session);
-      
-      // Redirecionar ao dashboard
+
       setTimeout(() => {
         navigate('/dashboard');
       }, 800);
     } catch (err) {
-      setError(err?.message || 'Falha na verificação');
+      setError(err?.message || t('criarConta.erroVerificacao'));
     } finally {
       setLoading(false);
     }
@@ -123,71 +128,95 @@ export function CriarContaPage() {
                   alt="Logo UAAPS"
                 />
               </div>
-              <h1>Criar Conta</h1>
-              <p>Registe-se na UAAPS</p>
+              <h1>{t('criarConta.titulo')}</h1>
+              <p>{t('criarConta.subtitulo')}</p>
             </div>
 
             <form className="login-form" onSubmit={showVerification ? handleVerifyCode : handleSubmit}>
               {!showVerification ? (
                 <>
                   <label>
-                    Nome Completo
+                    {t('criarConta.nomeCompleto')}
                     <input
                       type="text"
                       name="nome_completo"
                       value={formData.nome_completo}
                       onChange={handleChange}
-                      placeholder="Seu nome completo"
+                      placeholder={t('criarConta.nomePlaceholder')}
+                      maxLength={100}
                       required
+                      disabled={loading}
                     />
                   </label>
 
                   <label>
-                    Email
+                    {t('criarConta.email')}
                     <input
                       type="email"
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      placeholder="Email"
+                      placeholder={t('criarConta.emailPlaceholder')}
+                      maxLength={100}
+                      autoComplete="email"
                       required
+                      disabled={loading}
                     />
                   </label>
 
                   <label>
-                    Palavra-passe
+                    {t('criarConta.palavraPasse')}
                     <div style={{ position: 'relative', display: 'block' }}>
                       <input
                         type={showPassword ? 'text' : 'password'}
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
-                        placeholder="Mínimo 8 caracteres"
+                        placeholder={t('criarConta.ppPlaceholder')}
+                        maxLength={72}
+                        autoComplete="new-password"
+                        spellCheck="false"
                         required
+                        disabled={loading}
                         style={{ paddingRight: 40, width: '100%', boxSizing: 'border-box' }}
                       />
                       <button type="button" onClick={() => setShowPassword(p => !p)} tabIndex={-1}
-                        aria-label={showPassword ? 'Ocultar password' : 'Mostrar password'}
+                        aria-label={showPassword ? t('criarConta.ocultarPP') : t('criarConta.mostrarPP')}
                         style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: 0 }}>
                         {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
                       </button>
                     </div>
+                    {formData.password && (
+                      <div style={{ marginTop: '6px', fontSize: '12px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+                          <span>{t('criarConta.forcaPP')}</span>
+                          <span style={{ color: pwVal.color, fontWeight: '600' }}>{t(pwVal.strengthKey)}</span>
+                        </div>
+                        <div style={{ height: '5px', width: '100%', backgroundColor: '#e5e7eb', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${pwVal.score}%`, backgroundColor: pwVal.color, transition: 'all 0.3s ease' }} />
+                        </div>
+                      </div>
+                    )}
                   </label>
 
                   <label>
-                    Confirmar Palavra-passe
+                    {t('criarConta.confirmarPP')}
                     <div style={{ position: 'relative', display: 'block' }}>
                       <input
                         type={showConfirmPassword ? 'text' : 'password'}
                         name="confirm_password"
                         value={formData.confirm_password}
                         onChange={handleChange}
-                        placeholder="Confirme a palavra-passe"
+                        placeholder={t('criarConta.confirmarPlaceholder')}
+                        maxLength={72}
+                        autoComplete="new-password"
+                        spellCheck="false"
                         required
+                        disabled={loading}
                         style={{ paddingRight: 40, width: '100%', boxSizing: 'border-box' }}
                       />
                       <button type="button" onClick={() => setShowConfirmPassword(p => !p)} tabIndex={-1}
-                        aria-label={showConfirmPassword ? 'Ocultar password' : 'Mostrar password'}
+                        aria-label={showConfirmPassword ? t('criarConta.ocultarPP') : t('criarConta.mostrarPP')}
                         style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: 0 }}>
                         {showConfirmPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
                       </button>
@@ -196,14 +225,15 @@ export function CriarContaPage() {
                 </>
               ) : (
                 <label>
-                  Código de Verificação
+                  {t('criarConta.codigoVerificacao')}
                   <input
                     type="text"
                     value={verificationCode}
                     onChange={(e) => setVerificationCode(e.target.value)}
-                    placeholder="Insira o código de verificação de 6 dígitos"
-                    maxLength="6"
+                    placeholder={t('criarConta.codigoPlaceholder')}
+                    maxLength={6}
                     required
+                    disabled={loading}
                   />
                 </label>
               )}
@@ -212,22 +242,22 @@ export function CriarContaPage() {
               {success && <p style={{ color: '#10b981', fontSize: '14px', textAlign: 'center' }}>{success}</p>}
 
               <button type="submit" className="login-button" disabled={loading}>
-                {loading ? (showVerification ? 'A verificar...' : 'A criar conta...') : (showVerification ? 'Verificar' : 'Criar Conta')}
+                {loading ? (showVerification ? t('criarConta.aVerificar') : t('criarConta.aCriar')) : (showVerification ? t('criarConta.verificar') : t('criarConta.criar'))}
               </button>
             </form>
 
             <div className="login-divider">
-              <span className="login-divider-text">Já tem conta?</span>
+              <span className="login-divider-text">{t('criarConta.jaTem')}</span>
             </div>
 
             <div style={{ textAlign: 'center', marginTop: '20px' }}>
               <Link to="/login" style={{ color: '#059669', textDecoration: 'none', fontWeight: '500' }}>
-                Clique aqui para entrar
+                {t('criarConta.entrar')}
               </Link>
             </div>
 
             <p style={{ textAlign: 'center', fontSize: '12px', color: '#9ca3af', marginTop: '20px' }}>
-              ⓘ Apenas utilizadores com email @ufp.edu.pt podem aceder como terapeutas
+              {t('criarConta.notaUFP')}
             </p>
           </div>
         </div>
@@ -240,8 +270,8 @@ export function CriarContaPage() {
           }}
         >
           <div className="login-image-content">
-            <h2>UAAPS</h2>
-            <p>Cuidados de saúde especializados com profissionais qualificados</p>
+            <h2>{t('criarConta.uaapsTitulo')}</h2>
+            <p>{t('criarConta.uaapsDescricao')}</p>
           </div>
         </div>
       </div>

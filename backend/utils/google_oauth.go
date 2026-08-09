@@ -40,10 +40,19 @@ type GoogleTokenClaims struct {
 	EmailVerified bool   `json:"email_verified"`
 	Name          string `json:"name"`
 	Sub           string `json:"sub"` // Google Subject (unique identifier)
+	Nonce         string `json:"nonce,omitempty"`
 }
 
-// VerifyGoogleToken valida o token Google e retorna os claims
-func VerifyGoogleToken(ctx context.Context, idToken string) (*GoogleTokenClaims, error) {
+// VerifyGoogleTokenFunc is a hookable function used to validate Google ID tokens.
+// Tests may override this variable to mock token verification.
+var VerifyGoogleTokenFunc func(ctx context.Context, idToken string, expectedNonce string) (*GoogleTokenClaims, error)
+
+func init() {
+	VerifyGoogleTokenFunc = verifyGoogleTokenImpl
+}
+
+// verifyGoogleTokenImpl valida o token Google e retorna os claims, validando opcionalmente o nonce
+func verifyGoogleTokenImpl(ctx context.Context, idToken string, expectedNonce string) (*GoogleTokenClaims, error) {
 	if verifier == nil {
 		return nil, fmt.Errorf("Google verifier não foi inicializado")
 	}
@@ -60,7 +69,17 @@ func VerifyGoogleToken(ctx context.Context, idToken string) (*GoogleTokenClaims,
 		return nil, fmt.Errorf("falha ao extrair claims do token: %w", err)
 	}
 
+	// Se for fornecido um nonce esperado, validar que corresponde ao claim do token
+	if expectedNonce != "" && claims.Nonce != expectedNonce {
+		return nil, fmt.Errorf("nonce inválido")
+	}
+
 	return claims, nil
+}
+
+// VerifyGoogleToken mantém compatibilidade: valida sem verificar nonce
+func VerifyGoogleToken(ctx context.Context, idToken string) (*GoogleTokenClaims, error) {
+	return VerifyGoogleTokenFunc(ctx, idToken, "")
 }
 
 // ValidateUFPEmail verifica se o email pertence ao domínio @ufp.edu.pt

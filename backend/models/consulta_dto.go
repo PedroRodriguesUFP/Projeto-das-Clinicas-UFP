@@ -8,11 +8,12 @@ type SimpleEntity struct {
 }
 
 type DocumentoDTO struct {
-	ID          uint      `json:"id"`
-	ArquivoURL  string    `json:"arquivo_url"`
-	NomeArquivo string    `json:"nome_arquivo"`
-	Estado      string    `json:"estado"`
-	CreatedAt   time.Time `json:"created_at"`
+	ID            uint      `json:"id"`
+	ArquivoURL    string    `json:"arquivo_url"`
+	NomeArquivo   string    `json:"nome_arquivo"`
+	TipoDocumento string    `json:"tipo_documento"`
+	Estado        string    `json:"estado"`
+	CreatedAt     time.Time `json:"created_at"`
 }
 
 type ConsultaDTO struct {
@@ -66,11 +67,12 @@ func (c *Consulta) ConvertToDTO() *ConsultaDTO {
 	documentos := []DocumentoDTO{}
 	for _, doc := range c.Documentos {
 		documentos = append(documentos, DocumentoDTO{
-			ID:          doc.ID,
-			ArquivoURL:  doc.ArquivoURL,
-			NomeArquivo: doc.NomeArquivo,
-			Estado:      doc.Estado,
-			CreatedAt:   doc.CreatedAt,
+			ID:            doc.ID,
+			ArquivoURL:    doc.ArquivoURL,
+			NomeArquivo:   doc.NomeArquivo,
+			TipoDocumento: doc.TipoDocumento,
+			Estado:        doc.Estado,
+			CreatedAt:     doc.CreatedAt,
 		})
 	}
 

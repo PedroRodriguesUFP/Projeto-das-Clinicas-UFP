@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { DateInput } from '../components/DateInput.jsx';
 import { MiniCalendar } from '../components/MiniCalendar.jsx'
 import { useAuth } from '../context/AuthContext.jsx';
+import { useTranslation } from 'react-i18next';
 import {
   createConsulta,
   getHorariosDisponiveis,
@@ -18,6 +19,8 @@ import { getHorariosDisponiveisArea } from '../services/consultas.jsx';
 
 export function AgendarConsulta() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const isUtente = user?.role === 'utente';
   const [loading, setLoading] = useState(true);
@@ -77,7 +80,7 @@ export function AgendarConsulta() {
     const fetchData = async () => {
       try {
         setError('');
-        const [t, s, a, u] = await Promise.all([
+        const [terapeutasData, salasData, areasData, utentesData] = await Promise.all([
           getTerapeutas(),
           getSalas(),
           getAreasClinicas(),
@@ -87,21 +90,32 @@ export function AgendarConsulta() {
         if (isUtente) {
           setUtentes(user?.id ? [{ id: user.id, nome: user?.name || user?.email || 'Eu' }] : []);
         } else {
-          setUtentes(u || []);
+          setUtentes(utentesData || []);
         }
 
-        setTerapeutas(t || []);
-        setSalas(s || []);
-        setAreasClinicas(a || []);
+        setTerapeutas(terapeutasData || []);
+        setSalas(salasData || []);
+        setAreasClinicas(areasData || []);
+
+        const params = new URLSearchParams(location.search);
+        const areaParam = params.get('area');
+        const areaId = Number(areaParam);
+
+        if (Number.isFinite(areaId) && areasData?.some((area) => Number(area.id) === areaId)) {
+          setForm((prev) => ({
+            ...prev,
+            area_clinica_id: String(areaId),
+          }));
+        }
       } catch {
-        setError('Erro ao carregar dados');
+        setError(t('agendarConsulta.erroCarregarDados'));
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [isUtente, user?.email, user?.id, user?.name]);
+  }, [isUtente, location.search, t, user?.email, user?.id, user?.name]);
 
   // Filter terapeutas and salas when area changes
   useEffect(() => {
@@ -210,6 +224,16 @@ export function AgendarConsulta() {
   const isFisioterapia =
     areasClinicas.find((a) => String(a.id) === form.area_clinica_id)?.nome?.toLowerCase().includes('fisio') ?? false;
 
+  const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : i18n.resolvedLanguage?.startsWith('fr') ? 'fr' : 'pt';
+  const getTranslatedAreaName = (nome) => {
+    const normalized = (nome || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+    if (normalized.includes('fisioterapia')) return language === 'en' ? 'Physiotherapy' : language === 'fr' ? 'Kinésithérapie' : 'Fisioterapia';
+    if (normalized.includes('psicologia')) return language === 'en' ? 'Psychology' : language === 'fr' ? 'Psychologie' : 'Psicologia';
+    if (normalized.includes('nutri')) return language === 'en' ? 'Nutrition' : language === 'fr' ? 'Nutrition' : 'Nutrição';
+    if (normalized.includes('fala')) return language === 'en' ? 'Speech Therapy' : language === 'fr' ? 'Orthophonie' : 'Terapia da Fala';
+    return nome;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => {
@@ -236,8 +260,10 @@ export function AgendarConsulta() {
     e.preventDefault();
     setError('');
 
+
+
     if ((!isUtente && !form.utente_id) || (!isUtente && !form.terapeuta_id) || (!isUtente && !isFisioterapia && !form.sala_id) || !form.area_clinica_id || !form.data_inicio || !form.hora_inicio) {
-      setError('Todos os campos são obrigatórios');
+      setError(t('agendarConsulta.camposObrigatorios'));
       return;
     }
 
@@ -253,7 +279,7 @@ export function AgendarConsulta() {
       const utenteId = isUtente ? Number(user?.id) : parseInt(form.utente_id);
 
       if (!Number.isFinite(utenteId) || utenteId <= 0) {
-        setError('Utente inválido');
+        setError(t('agendarConsulta.utenteInvalido'));
         setSaving(false);
         return;
       }
@@ -271,23 +297,23 @@ export function AgendarConsulta() {
       await createConsulta(payload);
       navigate('/consultas');
     } catch (err) {
-      setError(err?.response?.data?.error || 'Erro ao agendar consulta');
+      setError(err?.response?.data?.error || t('agendarConsulta.erroAgendar'));
     } finally {
       setSaving(false);
     }
   };
 
   if (loading) {
-    return <div className="page">A carregar...</div>;
+    return <div className="page">{t('common.loading')}</div>;
   }
 
   return (
     <div className="page agendar-consulta">
       <div className="page-header">
         <button className="btn-back" onClick={() => navigate('/consultas')}>
-          ← Voltar
+          {t('agendarConsulta.voltar')}
         </button>
-        <h1>Agendar Nova Consulta</h1>
+        <h1>{t('agendarConsulta.titulo')}</h1>
       </div>
 
       <div>
@@ -299,7 +325,7 @@ export function AgendarConsulta() {
         )}
 
         <form onSubmit={handleSubmit} className="agendar-step-card">
-          <h2>1. Escolher Área Clínica</h2>
+          <h2>{t('agendarConsulta.escolherArea')}</h2>
 
           <div className="area-cards-grid">
             {areasClinicas.map((area) => {
@@ -311,32 +337,32 @@ export function AgendarConsulta() {
                   className={`area-card ${isSelected ? 'selected' : ''}`}
                   onClick={() => handleAreaSelect(area.id)}
                 >
-                  <span className="area-card-title">{area.nome}</span>
+                  <span className="area-card-title">{getTranslatedAreaName(area.nome)}</span>
                 </button>
               );
             })}
           </div>
 
           {!form.area_clinica_id && (
-            <p className="helper-text">Seleciona uma área clínica para desbloquear os restantes campos.</p>
+            <p className="helper-text">{t('agendarConsulta.helperArea')}</p>
           )}
 
           {form.area_clinica_id && (
             <>
-              <h2>2. Definir Consulta</h2>
+              <h2>{t('agendarConsulta.definirConsulta')}</h2>
 
               <div className="agendar-definir-cols">
                 <div className="agendar-definir-left">
                   {!isUtente && (
                     <div className="form-group">
-                      <label>Utente *</label>
+                      <label>{t('agendarConsulta.utente')} *</label>
                       <select
                         name="utente_id"
                         value={form.utente_id}
                         onChange={handleChange}
                         required
                       >
-                        <option value="">Selecionar utente...</option>
+                        <option value="">{t('agendarConsulta.selectUtente')}</option>
                         {utentes.map((u) => (
                           <option key={u.id} value={u.id}>
                             {u.nome}
@@ -349,14 +375,14 @@ export function AgendarConsulta() {
 
                   {!isUtente &&(
                   <div className="form-group">
-                    <label>Terapeuta *</label>
+                    <label>{t('agendarConsulta.terapeuta')} *</label>
                     <select
                       name="terapeuta_id"
                       value={form.terapeuta_id}
                       onChange={handleChange}
                       required
                     >
-                      <option value="">Selecionar terapeuta...</option>
+                      <option value="">{t('agendarConsulta.selectTerapeuta')}</option>
                       {terapeutasFiltrados.map((t) => (
                         <option key={t.user_id} value={t.user_id}>
                           {t.nome}
@@ -367,7 +393,7 @@ export function AgendarConsulta() {
                   )}
 
                   <div className="form-group">
-                    <label>Duração (minutos) *</label>
+                    <label>{t('agendarConsulta.duracao')} *</label>
                     <select
                       name="duracao"
                       value={form.duracao}
@@ -383,23 +409,23 @@ export function AgendarConsulta() {
                 </div>
 
                 <div className="agendar-definir-right">
-                  <p className="utente-info-label" style={{ margin: 0 }}>Dados do Utente</p>
+                  <p className="utente-info-label" style={{ margin: 0 }}>{t('agendarConsulta.dadosUtente')}</p>
                   {utenteDetails ? (
                     <div className="utente-info-panel">
                       <div className="utente-info-row">
-                        <span className="utente-info-label">Nome</span>
+                        <span className="utente-info-label">{t('agendarConsulta.nome')}</span>
                         <span className="utente-info-value">{utenteDetails.nome || '—'}</span>
                       </div>
                       <div className="utente-info-row">
-                        <span className="utente-info-label">Email</span>
+                        <span className="utente-info-label">{t('agendarConsulta.email')}</span>
                         <span className="utente-info-value">{utenteDetails.email || '—'}</span>
                       </div>
                       <div className="utente-info-row">
-                        <span className="utente-info-label">Telefone</span>
+                        <span className="utente-info-label">{t('agendarConsulta.telefone')}</span>
                         <span className="utente-info-value">{utenteDetails.telefone || '—'}</span>
                       </div>
                       <div className="utente-info-row">
-                        <span className="utente-info-label">Morada</span>
+                        <span className="utente-info-label">{t('agendarConsulta.morada')}</span>
                         <span className="utente-info-value">{utenteDetails.morada || '—'}</span>
                       </div>
                     </div>
@@ -407,19 +433,19 @@ export function AgendarConsulta() {
                     <div className="utente-info-panel">
                       <p className="utente-info-empty">
                         {isUtente
-                          ? 'Informações de contacto não disponíveis.'
-                          : 'Seleciona um utente para ver os dados de contacto.'}
+                          ? t('agendarConsulta.infoContactoIndisponivel')
+                          : t('agendarConsulta.selecionaUtenteDados')}
                       </p>
                     </div>
                   )}
                 </div>
               </div>
 
-              <h2>3. Data e Horário</h2>
+              <h2>{t('agendarConsulta.dataHorario')}</h2>
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Data *</label>
+                  <label>{t('agendarConsulta.data')} *</label>
                   <MiniCalendar
                     value={form.data_inicio}
                     onChange={(novaData)=>{
@@ -432,17 +458,17 @@ export function AgendarConsulta() {
               </div>
 
               <div className="form-group full-width">
-                <label>Horários disponíveis *</label>
+                <label>{t('agendarConsulta.horarios')} *</label>
                 {(isUtente ? !form.area_clinica_id : !form.terapeuta_id) || !form.data_inicio ? (
-                 <p className="helper-text">
-                   {isUtente
-                    ? 'Seleciona a especialidade e a data para veres os horários disponíveis.'
-                    : 'Seleciona terapeuta e data para veres os horários disponíveis.'}
-                 </p>
+                  <p className="helper-text">
+                    {isUtente
+                      ? 'Seleciona a especialidade e a data para veres os horários disponíveis.' 
+                      : t('agendarConsulta.selecionaTerapeutaData')}
+                  </p>
                 ) : loadingHorarios ? (
-                  <p className="helper-text">A carregar horários...</p>
+                  <p className="helper-text">{t('agendarConsulta.carregandoHorarios')}</p>
                 ) : horariosDisponiveis.length === 0 ? (
-                  <p className="helper-text">Sem horários disponíveis para esta data e duração.</p>
+                  <p className="helper-text">{t('agendarConsulta.semHorarios')}</p>
                 ) : (
                   <div className="slots-grid">
                     {horariosDisponiveis.map((slot) => (
@@ -466,10 +492,10 @@ export function AgendarConsulta() {
                 if (jaTemTerapeuta) return null;
                 const terapeutaNome = terapeutasFiltrados.find(
                   (t) => String(t.user_id) === String(form.terapeuta_id)
-                )?.nome || 'terapeuta selecionado';
-                const areaNome = areasClinicas.find(
+                )?.nome || t('agendarConsulta.terapeutaSelecionado');
+                const areaNome = getTranslatedAreaName(areasClinicas.find(
                   (a) => String(a.id) === String(form.area_clinica_id)
-                )?.nome || 'esta área';
+                )?.nome || '');
                 return (
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', margin: '0.5rem 0 1rem' }}>
                     <input
@@ -477,28 +503,32 @@ export function AgendarConsulta() {
                       checked={form.atribuir_terapeuta}
                       onChange={(e) => setForm((prev) => ({ ...prev, atribuir_terapeuta: e.target.checked }))}
                     />
-                    Atribuir <strong>{terapeutaNome}</strong> como terapeuta responsável de <strong>{areaNome}</strong>
+                    <span>
+                      {t('agendarConsulta.atribuirTerapeutaPrefix')}{' '}
+                      <strong>{terapeutaNome}</strong>{' '}
+                      {t('agendarConsulta.atribuirTerapeutaSufix', { areaNome })}
+                    </span>
                   </label>
                 );
               })()}
 
               {form.hora_inicio && !isUtente && (
                 <>
-                  <h2>4. Sala</h2>
+                  <h2>{t('agendarConsulta.salaTitulo')}</h2>
                   {isFisioterapia ? (
-                    <p className="helper-text">A sala será atribuída no momento da consulta.</p>
+                    <p className="helper-text">{t('agendarConsulta.salaFisio')}</p>
                   ) : salasParaSlot.length === 0 ? (
-                    <p className="helper-text">Sem salas disponíveis para este horário.</p>
+                    <p className="helper-text">{t('agendarConsulta.semSalas')}</p>
                   ) : (
                     <div className="form-group">
-                      <label>Sala *</label>
+                      <label>{t('agendarConsulta.sala')} *</label>
                       <select
                         name="sala_id"
                         value={form.sala_id}
                         onChange={handleChange}
                         required
                       >
-                        <option value="">Selecionar sala...</option>
+                        <option value="">{t('agendarConsulta.selectSala')}</option>
                         {salasParaSlot.map((s) => (
                           <option key={s.id} value={s.id}>
                             {s.nome}
@@ -512,8 +542,8 @@ export function AgendarConsulta() {
 
               {form.hora_inicio && isUtente && (
                 <div className="form-group">
-                  <label>Sala</label>
-                  <input value="Atribuída automaticamente conforme disponibilidade" disabled />
+                  <label>{t('agendarConsulta.sala')}</label>
+                  <input value={t('agendarConsulta.salaAutomatic')} disabled />
                 </div>
               )}
 
@@ -524,14 +554,14 @@ export function AgendarConsulta() {
                   onClick={() => navigate('/consultas')}
                   disabled={saving}
                 >
-                  Cancelar
+                  {t('agendarConsulta.cancelar')}
                 </button>
                 <button
                   type="submit"
                   className="btn btn-primary"
                   disabled={saving || !form.hora_inicio || (!isUtente && !isFisioterapia && !form.sala_id)}
                 >
-                  {saving ? 'A agendar...' : 'Agendar Consulta'}
+                  {saving ? t('agendarConsulta.agendando') : t('agendarConsulta.agendar')}
                 </button>
               </div>
             </>
