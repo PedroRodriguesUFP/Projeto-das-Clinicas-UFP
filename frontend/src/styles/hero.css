@@ -1,15 +1,36 @@
-/* Hero Section Animated Styles */
+/* ==========================================================================
+   Hero Section — UAAPS
+   Identidade: "clínica botânica" — o verde institucional da UFP tratado com
+   calor humano (serifado para o título, papel quente em vez de branco frio,
+   um motivo de "pulso" recorrente como assinatura visual).
+   Todas as classes existentes foram mantidas; apenas o CSS foi reescrito.
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&display=swap');
+
 .hero-section-animated {
+  --hero-paper: #FBF9F4;
+  --hero-sage: #EAF1EC;
+  --hero-ink: #16302A;
+  --hero-ink-soft: #4B5F58;
+  --hero-line: #DCE6DF;
+
+  position: relative;
   display: flex;
   width: 100%;
   min-height: 600px;
-  background: white;
+  background:
+    radial-gradient(680px 420px at 8% -8%, rgba(184, 214, 27, 0.14), transparent 60%),
+    radial-gradient(520px 420px at 105% 15%, rgba(30, 125, 91, 0.10), transparent 60%),
+    var(--hero-paper);
   overflow: hidden;
 }
 
 .hero-section-content {
+  position: relative;
+  z-index: 1;
   width: 100%;
-  padding: 48px 32px;
+  padding: 40px 24px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -22,103 +43,150 @@
 
   .hero-section-content {
     width: 60%;
-    padding: 64px;
+    padding: 72px 64px;
   }
 }
 
 @media (min-width: 1024px) {
   .hero-section-content {
-    width: 60%;
+    width: 58%;
+    padding: 80px 72px;
   }
 }
 
+/* ---- Header / Logo -------------------------------------------------- */
+
 .hero-header {
-  margin-bottom: 40px;
+  margin-bottom: 44px;
 }
 
 .hero-logo {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   margin-bottom: 20px;
 }
 
 .logo-img {
-  height: 48px;
+  height: 46px;
   width: auto;
 }
 
 .logo-text {
   margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  color: #111827;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--hero-ink);
+  padding-bottom: 4px;
+  border-bottom: 2px solid var(--ufp-secondary, #B8D61B);
 }
 
 .logo-slogan {
-  margin: 4px 0 0 0;
-  font-size: 11px;
-  letter-spacing: 0.05em;
-  color: #6b7280;
+  margin: 6px 0 0 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  color: var(--ufp-primary-light, #2D9B6D);
 }
+
+/* ---- Title / Copy ----------------------------------------------------- */
 
 .hero-main {
   margin-bottom: 40px;
 }
 
 .hero-title {
-  font-size: 36px;
-  font-weight: 700;
-  line-height: 1.3;
-  color: #111827;
-  margin: 0 0 20px 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 34px;
+  font-weight: 600;
+  font-optical-sizing: auto;
+  line-height: 1.16;
+  letter-spacing: -0.01em;
+  color: var(--hero-ink);
+  margin: 0 0 22px 0;
 }
 
 @media (min-width: 768px) {
   .hero-title {
-    font-size: 48px;
+    font-size: 50px;
   }
 }
 
+/* Assinatura visual: uma linha de "pulso" em vez de um simples traço,
+   reforçando o mote de cuidado e vitalidade sem depender de imagens. */
 .hero-divider {
-  width: 80px;
-  height: 4px;
-  background: var(--ufp-primary);
-  margin: 16px 0 20px 0;
+  width: 132px;
+  height: 26px;
+  margin: 0 0 22px 0;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20160%2032'%3E%3Cpath%20d='M0%2016%20H40%20L48%204%20L58%2028%20L66%2016%20H100%20L106%2024%20L114%208%20L120%2016%20H160'%20fill='none'%20stroke='%231E7D5B'%20stroke-width='3'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: contain;
 }
 
 .hero-subtitle {
-  margin: 0 0 24px 0;
-  max-width: 500px;
+  margin: 0 0 30px 0;
+  max-width: 480px;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 16px;
-  color: #6b7280;
-  line-height: 1.6;
+  color: var(--hero-ink-soft);
+  line-height: 1.7;
 }
 
 .hero-cta {
-  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 15px;
   font-weight: 700;
-  letter-spacing: 0.05em;
-  color: var(--ufp-primary);
+  letter-spacing: 0.02em;
+  color: white;
+  background: var(--ufp-primary, #1E7D5B);
+  padding: 14px 26px;
+  border-radius: 999px;
   text-decoration: none;
-  transition: color 0.3s ease;
+  box-shadow: 0 10px 24px -8px rgba(30, 125, 91, 0.55);
+  transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.hero-cta::after {
+  content: '\2192';
   display: inline-block;
+  transition: transform 0.25s ease;
 }
 
 .hero-cta:hover {
-  color: var(--ufp-primary-light);
+  background: var(--ufp-primary-light, #2D9B6D);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px -8px rgba(30, 125, 91, 0.6);
 }
+
+.hero-cta:hover::after {
+  transform: translateX(3px);
+}
+
+.hero-cta:focus-visible {
+  outline: 2px solid var(--ufp-primary, #1E7D5B);
+  outline-offset: 3px;
+}
+
+/* ---- Footer / Contact info -------------------------------------------- */
 
 .hero-footer {
   margin-top: 40px;
-  padding-top: 24px;
-  border-top: 1px solid #e5e7eb;
+  padding-top: 28px;
+  border-top: 1px solid var(--hero-line);
 }
 
 .contact-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 20px;
+  gap: 14px;
 }
 
 @media (min-width: 640px) {
@@ -130,25 +198,44 @@
 .contact-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: #6b7280;
+  gap: 10px;
+  padding: 12px 14px;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--hero-ink-soft);
+  background: var(--hero-sage);
+  border-radius: 10px;
+  transition: background 0.25s ease, transform 0.25s ease;
+}
+
+.contact-item:hover {
+  background: #E1EDE4;
+  transform: translateY(-2px);
 }
 
 .info-icon-wrapper {
   flex-shrink: 0;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(22, 48, 42, 0.08);
 }
 
 .info-icon {
-  width: 20px;
-  height: 20px;
-  color: var(--ufp-primary);
+  width: 16px;
+  height: 16px;
+  color: var(--ufp-primary, #1E7D5B);
 }
 
+/* ---- Image side --------------------------------------------------------- */
+
 .hero-image {
+  position: relative;
   display: none;
   min-height: 100%;
   background-size: cover;
@@ -156,8 +243,45 @@
   width: 40%;
 }
 
+.hero-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(200deg, rgba(22, 48, 42, 0.06) 0%, rgba(22, 48, 42, 0.38) 100%);
+}
+
+.hero-image::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+/* Wireframe 3D "pulse" mesh (lazy-loaded, three.js). Sits above the photo,
+   under the gradient wash from ::after, and never intercepts clicks. */
+.hero-scene {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.hero-scene canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
 @media (min-width: 768px) {
   .hero-image {
     display: block;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-cta,
+  .contact-item {
+    transition: none;
   }
 }
