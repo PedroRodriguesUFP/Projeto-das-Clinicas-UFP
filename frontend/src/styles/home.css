@@ -148,7 +148,7 @@
   padding: 32px 24px;
   border-radius: 8px;
   border: 2px solid transparent;
-  text-align: center;
+  text-align: left;
   transition: all 0.3s ease;
   position: relative;
 }
@@ -170,8 +170,20 @@
   transform: translateY(-4px);
 }
 
+.contacto-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.contacto-card-header svg {
+  color: var(--ufp-primary);
+  min-width: 22px;
+}
+
 .contacto-card h3 {
-  margin: 0 0 12px 0;
+  margin: 0;
   font-size: 18px;
   color: #111827;
 }
