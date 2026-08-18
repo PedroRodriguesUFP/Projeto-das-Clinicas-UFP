@@ -91,6 +91,7 @@ export function Navbar() {
                         <CalendarDate size={14} /> A minha disponibilidade
                       </a>
                       )}
+                      
                   {(user?.role === 'utente' || user?.role === 'administrativo') && (
                     <a href="/consultas/nova" className="dropdown-item" onClick={(e) => {
                       e.preventDefault();

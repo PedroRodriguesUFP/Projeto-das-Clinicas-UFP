@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { loginRequest, loginWithGoogle, resendVerificationRequest, verifyEmailRequest } from '../services/auth.jsx';
@@ -24,6 +24,11 @@ export function LoginPage() {
   const [showVerification, setShowVerification] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
   const [userId, setUserId] = useState(null);
+  const [nonce, setNonce] = useState('');
+  useEffect(() => {
+    // Gera uma string aleatória para servir de nonce quando a página carrega
+    setNonce(Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2));
+  }, []);
 
   const goBack = () => {
     setSelectedRole(null);
@@ -103,7 +108,8 @@ export function LoginPage() {
     setLoading(true);
 
     try {
-      const session = await loginWithGoogle(credentialResponse.credential);
+      // Atualizado para enviar a credencial E o nonce
+      const session = await loginWithGoogle(credentialResponse.credential, nonce); 
       login(session);
       navigate('/dashboard');
     } catch (err) {
@@ -172,6 +178,7 @@ export function LoginPage() {
                     text="signin_with"
                     theme="outline"
                     size="large"
+                    nonce={nonce}
                   />
                 </div>
               </>

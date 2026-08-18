@@ -164,7 +164,7 @@ export function AgendarConsulta() {
       setLoadingHorarios(true);
       try {
         const result = await getHorariosDisponiveisArea(form.area_clinica_id, form.data_inicio, form.duracao);
-        setHorariosDisponiveis(result.horarios_disponiveis || []);
+        setHorariosDisponiveis(result.horarios_disponiveis || result || []);
       } finally {
         setLoadingHorarios(false);
       }

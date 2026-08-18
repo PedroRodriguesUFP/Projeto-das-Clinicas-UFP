@@ -27,7 +27,7 @@ func main() {
 		consulta_id INTEGER PRIMARY KEY,
 		notas TEXT,
 		prescricoes_json TEXT,
-		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	)`)
 
 	if env := config.GetEnvOptional("ENVIRONMENT", ""); env == "" {
