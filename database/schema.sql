@@ -144,6 +144,22 @@ EXCLUDE USING GIST (
 WHERE (estado = 'agendada'::consulta_estado AND tipo_consulta = 'individual');
 
 
+ALTER TABLE consultas
+ADD CONSTRAINT no_overlap_utente
+EXCLUDE USING GIST (
+  utente_id WITH =,
+  tsrange(data_inicio, data_fim) WITH &&
+)
+WHERE (estado = 'agendada'::consulta_estado);
+
+ALTER TABLE consultas
+ADD CONSTRAINT no_overlap_terapeuta
+EXCLUDE USING GIST (
+  terapeuta_id WITH =,
+  tsrange(data_inicio, data_fim) WITH &&
+)
+WHERE (estado = 'agendada'::consulta_estado AND tipo_consulta = 'individual');
+
 
 CREATE TABLE fichas_avaliacao (
   id SERIAL PRIMARY KEY,
@@ -367,3 +383,19 @@ CREATE TABLE documentos_consulta (
 
 CREATE INDEX idx_documentos_consulta ON documentos_consulta(consulta_id);
 CREATE INDEX idx_documentos_uploaded_by ON documentos_consulta(uploaded_by);
+
+
+
+--Disponibilidade do terapeuta
+
+CREATE TABLE disponibilidade_terapeuta (
+  id SERIAL PRIMARY KEY,
+  terapeuta_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  data DATE NOT NULL,
+  hora_inicio TIME NOT NULL,
+  hora_fim TIME NOT NULL,
+  UNIQUE (terapeuta_id, data, hora_inicio, hora_fim)
+);
+
+CREATE INDEX idx_disponibilidade_terapeuta ON disponibilidade_terapeuta(terapeuta_id);
+CREATE INDEX idx_disponibilidade_terapeuta_data ON disponibilidade_terapeuta(data);

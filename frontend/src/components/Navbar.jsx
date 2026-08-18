@@ -82,6 +82,16 @@ export function Navbar() {
                   }}>
                     <CalendarDate size={14} /> {t('nav.calendar')}
                   </a>
+                  {user?.role === 'terapeuta' && (
+                    <a href="/disponibilidade" className="dropdown-item" onClick={(e) => {
+                      e.preventDefault();
+                      navigate('/disponibilidade');
+                      setConsultasDropdownOpen(false);
+                      }}>
+                        <CalendarDate size={14} /> A minha disponibilidade
+                      </a>
+                      )}
+                      
                   {(user?.role === 'utente' || user?.role === 'administrativo') && (
                     <a href="/consultas/nova" className="dropdown-item" onClick={(e) => {
                       e.preventDefault();

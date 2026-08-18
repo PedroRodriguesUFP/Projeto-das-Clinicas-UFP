@@ -85,6 +85,16 @@ export async function getHorariosDisponiveis(terapeutaId, data, duracao, options
   return response;
 }
 
+export const getHorariosDisponiveisArea = (areaClinicaId, data, duracao) =>
+  api.get(`/areas-clinicas/${areaClinicaId}/horarios-disponiveis`, {
+    params: { data, duracao },
+  }).then((r) => r.data);
+
+export const getDiasDisponiveisArea = (areaClinicaId, ano, mes) =>
+  api.get(`/areas-clinicas/${areaClinicaId}/dias-disponiveis`, {
+    params: { ano, mes },
+  }).then((r) => r.data);
+
 export async function getTerapeutasByArea(areaId) {
   const { data } = await api.get(`/terapeutas/area/${areaId}`);
   return data;
