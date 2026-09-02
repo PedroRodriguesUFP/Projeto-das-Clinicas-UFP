@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    volumes:
+    - ./backend/uploads:/app/uploads
+    environment:
+      - DB_HOST=ep-fragrant-frog-axtmc1ye.c-4.us-east-2.aws.neon.tech
+      - DB_PORT=5432
+      - DB_USER=neondb_owner
+      - DB_PASSWORD=npg_hj63xkEBoncv
+      - DB_NAME=neondb
+      - DB_SSLMODE=require
+      - JWT_SECRET=uma-frase-secreta-qualquer-bem-comprida
+      - PORT=8080
+      - ENVIRONMENT=development
+      - APP_ENV=development
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USER=uaaps.clinicas@gmail.com
+      - SMTP_PASSWORD=yssrmlrnwcrtgfzz
+      - SMTP_FROM_EMAIL=uaaps.clinicas@gmail.com
+      - SMTP_FROM_NAME=UAAPS
+      - GOOGLE_CLIENT_ID=1087193234173-v5nfqb2d4vfu3ligucchmh55mf40kacj.apps.googleusercontent.com
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend

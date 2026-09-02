@@ -1,0 +1,12 @@
+# Dependências do Node (O Docker é que tem de fazer o npm install)
+node_modules/
+npm-debug.log
+
+# Ficheiros de build locais
+dist/
+build/
+
+# Ficheiros de ambiente e Git
+.env
+.git
+.gitignore
