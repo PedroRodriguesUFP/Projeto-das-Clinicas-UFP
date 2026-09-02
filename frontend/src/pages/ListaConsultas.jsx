@@ -176,8 +176,8 @@ export function ListaConsultas() {
               <ClipboardData size={14} /> {t('consultationsPage.tableView')}
             </button>
             <button
-              className={`view-btn ${viewMode === 'calendario' ? 'active' : ''}`}
-              onClick={() => setViewMode('calendario')}
+              className="view-btn"
+              onClick={() => navigate('/calendario')}
               title={t('consultationsPage.viewAsCalendar')}
             >
               <CalendarDate size={14} /> {t('consultationsPage.calendarView')}

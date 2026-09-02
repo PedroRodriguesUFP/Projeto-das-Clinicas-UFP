@@ -1,0 +1,160 @@
+.disponibilidade-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.disponibilidade-header h1 {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.disponibilidade-subtitle {
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+}
+
+.disponibilidade-grid-wrapper {
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 0.5rem;
+}
+
+.disponibilidade-grid {
+  border-collapse: separate;
+  border-spacing: 4px;
+  width: 100%;
+}
+
+.disponibilidade-grid th {
+  font-size: 0.8rem;
+  color: #374151;
+  font-weight: 600;
+  padding: 0.4rem;
+}
+
+.hora-col {
+  width: 60px;
+  font-size: 0.8rem;
+  color: #6b7280;
+  text-align: right;
+  padding-right: 0.5rem;
+}
+
+.slot-toggle {
+  width: 100%;
+  height: 32px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #f9fafb;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.slot-toggle:hover {
+  background: #e5f3ef;
+}
+
+.slot-toggle.ativo {
+  background: #0f766e;
+  border-color: #0f766e;
+}
+
+.disponibilidade-footer {
+  margin-top: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn-guardar {
+  background: #0f766e;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.4rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-guardar:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.disponibilidade-mensagem {
+  color: #0f766e;
+  font-weight: 500;
+}
+
+.disponibilidade-layout {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.disponibilidade-dia {
+  flex: 1;
+  min-width: 280px;
+}
+
+.disponibilidade-dia h3 {
+  text-transform: capitalize;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: #1f2937;
+}
+
+.disponibilidade-horas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.hora-toggle {
+  padding: 0.6rem 0.4rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.hora-toggle:hover {
+  background: #e5f3ef;
+}
+
+.hora-toggle.ativo {
+  background: #0f766e;
+  border-color: #0f766e;
+  color: white;
+}
+.btn-voltar {
+  background: none;
+  border: none;
+  color: #0f766e;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  padding: 0;
+  font-size: 0.95rem;
+}
+
+.btn-voltar:hover {
+  text-decoration: underline;
+}
+
+.disponibilidade-mensagem {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  font-weight: 500;
+  display: inline-block;
+  margin-top: 0.75rem;
+}

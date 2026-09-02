@@ -27,7 +27,7 @@ func main() {
 		consulta_id INTEGER PRIMARY KEY,
 		notas TEXT,
 		prescricoes_json TEXT,
-		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	)`)
 
 	if env := config.GetEnvOptional("ENVIRONMENT", ""); env == "" {
@@ -71,6 +71,8 @@ func main() {
 		"http://localhost:8000",
 		"http://localhost:8001",
 		"http://127.0.0.1:8000",
+		"http://localhost:3000",
+		"http://localhost",
 		"https://projeto-das-clinicas-ufp.vercel.app",
 	}
 
@@ -94,11 +96,12 @@ func main() {
 	}))
 
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:  allowedOrigins,
-		AllowMethods:  []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:  []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		ExposeHeaders: []string{"Content-Length"},
-		MaxAge:        12 * time.Hour,
+		AllowOrigins:     allowedOrigins,
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
 	}))
 
 	r.GET("/health", func(c *gin.Context) {
@@ -161,6 +164,10 @@ func main() {
 		auth.DELETE("/remover-aluno/:aluno_id", middleware.RoleMiddleware("terapeuta"), controllers.RemoverAluno)
 		auth.PUT("/terapeutas/area-clinica", middleware.RoleMiddleware("terapeuta"), controllers.UpdateAreaClinica)
 		auth.PUT("/terapeutas/:user_id/area-clinica", middleware.RoleMiddleware("admin", "administrativo"), controllers.UpdateAreaClinicaAdmin)
+		auth.GET("/terapeutas/minha-disponibilidade", controllers.GetMinhaDisponibilidade)
+		auth.PUT("/terapeutas/minha-disponibilidade", middleware.RoleMiddleware("terapeuta"), controllers.SetMinhaDisponibilidade)
+		auth.GET("/areas-clinicas/:id/dias-disponiveis", middleware.RoleMiddleware("admin", "administrativo", "terapeuta", "utente"), controllers.GetDiasDisponiveisArea)
+		auth.GET("/areas-clinicas/:id/horarios-disponiveis", middleware.RoleMiddleware("admin", "administrativo", "terapeuta", "utente"), controllers.GetHorariosDisponiveisArea)
 
 		auth.GET("/fichas-avaliacao", middleware.RoleMiddleware("admin", "terapeuta", "utente"), controllers.GetFichasAvaliacao)
 		auth.GET("/fichas-avaliacao/:id", middleware.RoleMiddleware("admin", "terapeuta", "utente"), controllers.GetFichaAvaliacaoByID)

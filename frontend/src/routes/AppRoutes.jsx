@@ -29,6 +29,7 @@ import { AtivarContaPage } from '../pages/AtivarContaPage.jsx';
 import { TransferirUtentes } from '../pages/TransferirUtentes.jsx';
 import { Layout } from '../components/Layout.jsx';
 import { Navbar } from '../components/Navbar.jsx';
+import { DisponibilidadeTerapeuta } from '../pages/DisponibilidadeTerapeuta.jsx';
 
 function PublicLayout({ children }) {
   return (
@@ -59,6 +60,7 @@ export function AppRoutes() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/criar-conta" element={<CriarContaPage />} />
       <Route path="/ativar-conta" element={<AtivarContaPage />} />
+      <Route path="/disponibilidade" element={<DisponibilidadeTerapeuta />} />
       <Route
         path="/"
         element={

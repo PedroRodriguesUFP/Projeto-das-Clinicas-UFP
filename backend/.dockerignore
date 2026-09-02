@@ -1,0 +1,18 @@
+# Git
+.git
+.gitignore
+.gitgub/
+
+# Ficheiros de ambiente (Segurança)
+.env
+*.env
+
+# Binários e ficheiros temporários do Go
+/tmp
+/bin
+*.exe
+*.log
+
+# Evitar copiar a pasta de uploads local para dentro da imagem base
+/uploads/*
+!/uploads/.gitignore

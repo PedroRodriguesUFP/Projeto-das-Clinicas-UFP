@@ -338,9 +338,11 @@ export function DashboardStaff() {
                 <button className={`tab-btn ${activeTab === 'salas' ? 'active' : ''}`} onClick={() => setActiveTab('salas')}>
                     <Hospital size={16} /> {t('dashboardStaff.rooms')}
                 </button>
+                {/*
                 <button className={`tab-btn`} onClick={() => setIsUtenteModalOpen(true)}>
                     <PlusLg size={16} /> {t('dashboardStaff.addPatient')}
                 </button>
+                */}
                 {(user.role === 'admin' || user.role === 'administrativo') && (
                     <button className={`tab-btn ${activeTab === 'assiduidade' ? 'active' : ''}`} onClick={() => setActiveTab('assiduidade')}>
                         <ClockHistory size={16} /> {t('dashboardStaff.attendance')}
@@ -974,11 +976,12 @@ export function DashboardStaff() {
                 onClose={() => setIsAlunosModalOpen(false)}
                 onSuccess={() => { setIsAlunosModalOpen(false); carregarAlunos(); }}
             />
+            {/*
             <CriarUtenteModal
                 isOpen={isUtenteModalOpen}
                 onClose={() => setIsUtenteModalOpen(false)}
                 onSuccess={() => setIsUtenteModalOpen(false)}
-            />
+            />*/}
             <ConfirmModal
                 open={confirmModal.open}
                 title={confirmModal.title}

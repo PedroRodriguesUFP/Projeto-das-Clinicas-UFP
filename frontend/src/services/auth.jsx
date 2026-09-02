@@ -99,9 +99,10 @@ export async function loginRequest({ email, password }) {
   }
 }
 
-export async function loginWithGoogle(idToken) {
-  if (!idToken) {
-    throw new Error('ID Token do Google obrigatório');
+export async function loginWithGoogle(idToken, nonce) {
+  // Agora validamos se ambos existem
+  if (!idToken || !nonce) {
+    throw new Error('ID Token e Nonce do Google obrigatórios');
   }
 
   const ready = await waitForBackendReady();
@@ -114,6 +115,7 @@ export async function loginWithGoogle(idToken) {
     try {
       const { data } = await api.post('/auth/google/callback', {
         id_token: idToken,
+        nonce: nonce, // <-- O nonce é adicionado aqui ao payload enviado para o backend
       });
       return buildSession(data);
     } catch (err) {

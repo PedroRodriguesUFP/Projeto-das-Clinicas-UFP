@@ -156,9 +156,9 @@ export function DetalhesConsulta() {
       const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
       const prescricaoLimpa = prescricao.filter(p => p && p.medicamento && p.medicamento.trim() !== '');
 
-      await axios.put(`${baseUrl}/consultas/${id}/notas`, {
-        notas: notas || '',
-        prescricao: prescricaoLimpa
+      await axios.post(`${baseUrl}/consultas/${id}/notas`, {
+      notas: notas || '',
+      prescricao: prescricaoLimpa
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });

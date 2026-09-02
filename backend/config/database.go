@@ -1,11 +1,10 @@
 package config
 
 import (
-	"clinica-backend/models"
+	"fmt"
 	"log"
 
-	"github.com/glebarez/sqlite"
-	"golang.org/x/crypto/bcrypt"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -14,135 +13,21 @@ var DB *gorm.DB
 func ConnectDB() {
 	LoadEnv()
 
-	var err error
-	DB, err = gorm.Open(sqlite.Open("clinica_local.db"), &gorm.Config{})
-
-	if err != nil {
-		log.Fatal("❌ Erro ao ligar à base de dados local:", err)
-	}
-
-	log.Println("✅ Ligação à base de dados LOCAL (SQLite) estabelecida!")
-
-	// 1. Cria as tabelas
-	err = DB.AutoMigrate(
-		&models.User{},
-		&models.AreaClinica{},
-		&models.Terapeuta{},
-		&models.Utente{},
-		&models.ProcessoClinico{},
-
-		// --- AS TABELAS NOVAS QUE FALTAVAM ---
-		&models.Consulta{},
-		&models.Sala{},
-		&models.FichaAvaliacao{},
-		&models.FichaPsicologia{},
-		&models.FichaTerapiaFala{},
-		&models.FichaNutricao{},
-		&models.DocumentoConsulta{},
+	dsn := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		GetEnv("DB_HOST"),
+		GetEnv("DB_PORT"),
+		GetEnv("DB_USER"),
+		GetEnv("DB_PASSWORD"),
+		GetEnv("DB_NAME"),
+		GetEnv("DB_SSLMODE"),
 	)
 
+	var err error
+	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Println("❌ Erro a migrar tabelas:", err)
-	} else {
-		log.Println("✅ Tabelas sincronizadas!")
-
-		// 2. Garante que as áreas clínicas existem (inclui Fisioterapia)
-		SeedAreasClinicas(DB)
-
-		// 3. Injeta o utilizador de teste automaticamente!
-		SeedProfessor(DB)
-	}
-}
-
-// SeedAreasClinicas insere as áreas clínicas base se ainda não existirem.
-// A área de Fisioterapia tem o ID 3, consistente com o database/seed.sql.
-func SeedAreasClinicas(db *gorm.DB) {
-	areas := []models.AreaClinica{
-		{ID: 1, Nome: "Psicologia", Ativa: true},
-		{ID: 2, Nome: "Nutrição", Ativa: true},
-		{ID: 3, Nome: "Fisioterapia", Ativa: true},
-		{ID: 4, Nome: "Terapia da Fala", Ativa: true},
+		log.Fatal("Erro ao ligar à base de dados:", err)
 	}
 
-	for _, area := range areas {
-		var count int64
-		db.Model(&models.AreaClinica{}).
-			Where("id = ? OR nome = ?", area.ID, area.Nome).
-			Count(&count)
-
-		if count == 0 {
-			if err := db.Create(&area).Error; err != nil {
-				log.Printf("⚠️ Erro ao criar área clínica '%s': %v", area.Nome, err)
-			} else {
-				log.Printf("✅ Área clínica '%s' criada (ID %d)", area.Nome, area.ID)
-			}
-		}
-	}
-}
-
-// SeedProfessor injeta um utilizador de teste que já tem o email verificado.
-func SeedProfessor(db *gorm.DB) {
-	var count int64
-	db.Model(&models.User{}).Where("email = ?", "professor@ufp.pt").Count(&count)
-
-	if count == 0 {
-		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("ClinicaUFP@2026!"), bcrypt.DefaultCost)
-
-		professor := models.User{
-			Nome:          "Professor Fisio",
-			Email:         "professor@ufp.edu.pt",
-			PasswordHash:  string(hashedPassword),
-			Role:          "terapeuta",
-			EmailVerified: true,
-			Active:        true,
-		}
-
-		if err := db.Create(&professor).Error; err != nil {
-			log.Println("⚠️ Erro ao criar Professor de teste:", err)
-			return
-		}
-
-		// Área clínica de Fisioterapia (ID 3) — garante-se que já existe via SeedAreasClinicas
-		areaFisio := uint(3)
-		terapeuta := models.Terapeuta{
-			UserID:        professor.ID,
-			Tipo:          "professor",
-			AreaClinicaID: &areaFisio,
-		}
-		if err := db.Create(&terapeuta).Error; err != nil {
-			log.Println("⚠️ Erro ao criar Terapeuta de teste:", err)
-			return
-		}
-
-		log.Println("🚀 PROFESSOR DE TESTE CRIADO COM SUCESSO!")
-		log.Println("📧 Email: professor@ufp.edu.pt")
-		log.Println("🔑 Password: 123456")
-	}
-	// --- CRIAR UTENTE DE TESTE ---
-	var countUtente int64
-	DB.Model(&models.User{}).Where("email = ?", "utente@ufp.edu.pt").Count(&countUtente)
-
-	if countUtente == 0 {
-		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("ClinicaUFP@2026!"), bcrypt.DefaultCost)
-
-		userUtente := models.User{
-			Nome:          "Utente de Teste",
-			Email:         "utente@ufp.edu.pt",
-			PasswordHash:  string(hashedPassword),
-			Role:          "utente",
-			Active:        true,
-			EmailVerified: true,
-		}
-
-		if err := DB.Create(&userUtente).Error; err == nil {
-			// Criar o perfil de utente associado
-			DB.Create(&models.Utente{UserID: userUtente.ID})
-
-			// Criar o processo clínico associado
-			DB.Create(&models.ProcessoClinico{UtenteID: userUtente.ID, Ativo: true})
-
-			log.Println("🚀 UTENTE DE TESTE CRIADO COM SUCESSO!")
-			log.Println("📧 Email: utente@ufp.edu.pt")
-		}
-	}
+	log.Println("Ligação à base de dados estabelecida com sucesso")
 }

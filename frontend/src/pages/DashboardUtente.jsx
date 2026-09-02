@@ -22,6 +22,7 @@ export function DashboardUtente() {
                     setConsultas(consultasData || []);
                 }
             } catch (err) {
+                console.error('Erro ao buscar consultas do utente:', err);
             } finally {
                 setLoading(false);
             }
