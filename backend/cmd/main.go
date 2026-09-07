@@ -211,6 +211,8 @@ func main() {
 		auth.GET("/admin/users", middleware.RoleMiddleware("admin"), controllers.GetStaffUsers)
 		auth.PATCH("/admin/users/:id/toggle-active", middleware.RoleMiddleware("admin"), controllers.ToggleUserActive)
 		auth.POST("/admin/users", middleware.RoleMiddleware("admin"), controllers.CreateStaffUser)
+		auth.PUT("/admin/users/:id", middleware.RoleMiddleware("admin"), controllers.UpdateUserProfile)
+		auth.GET("/admin/todas-consultas", middleware.RoleMiddleware("admin"), controllers.GetAllConsultasParaCalendario)
 	}
 
 	// Uploads: avatars públicos, PDFs protegidos — geridos num único handler

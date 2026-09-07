@@ -1395,3 +1395,25 @@ func ValidarDocumento(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "Documento rejeitado e eliminado"})
 	}
 }
+
+
+// Obter todas as consultas (podes depois adicionar filtros por dia via query params)
+func GetAllConsultas(c *gin.Context) {
+    var consultas []models.Consulta
+    if err := config.DB.Find(&consultas).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+    c.JSON(http.StatusOK, consultas)
+}
+
+// Desmarcar consulta
+func CancelarConsulta(c *gin.Context) {
+    id := c.Param("id")
+    // Assumindo que a tua struct Consulta tem um campo "Estado"
+    if err := config.DB.Model(&models.Consulta{}).Where("id = ?", id).Update("estado", "cancelada").Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao cancelar"})
+        return
+    }
+    c.JSON(http.StatusOK, gin.H{"message": "Consulta desmarcada"})
+}

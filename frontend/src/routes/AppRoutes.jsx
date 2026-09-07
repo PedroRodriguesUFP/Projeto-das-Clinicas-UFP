@@ -30,6 +30,9 @@ import { TransferirUtentes } from '../pages/TransferirUtentes.jsx';
 import { Layout } from '../components/Layout.jsx';
 import { Navbar } from '../components/Navbar.jsx';
 import { DisponibilidadeTerapeuta } from '../pages/DisponibilidadeTerapeuta.jsx';
+import { AdminUsersPage } from '../pages/AdminUsersPage.jsx';
+import { AdminCalendarPage } from '../pages/AdminCalendarPage.jsx';
+
 
 function PublicLayout({ children }) {
   return (
@@ -264,6 +267,27 @@ export function AppRoutes() {
       <Route path="/fichas-terapia-fala/:id" element={isAuthenticated ? <Layout><VerFichaTerapiaFala /></Layout> : <Navigate to="/" replace />} />
       <Route path="/fichas-nutricao/:id" element={isAuthenticated ? <Layout><VerFichaNutricao /></Layout> : <Navigate to="/" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
+      <Route
+        path="/admin/users"
+        element={
+          isAuthenticated && (user?.role === 'admin' || user?.role === 'administrativo') ? (
+            <Layout><AdminUsersPage /></Layout>
+          ) : (
+            <Navigate to="/dashboard" replace />
+          )
+        }
+      />
+
+      <Route
+        path="/admin/calendario"
+        element={
+          isAuthenticated && (user?.role === 'admin' || user?.role === 'administrativo') ? (
+            <Layout><AdminCalendarPage /></Layout>
+          ) : (
+            <Navigate to="/dashboard" replace />
+          )
+        }
+      />
     </Routes>
   );
 }
