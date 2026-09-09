@@ -49,3 +49,13 @@ export async function createAssiduidade(payload) {
   const { data } = await api.post('/assiduidade', payload);
   return data;
 }
+
+export async function updateUserProfile(userId, payload) {
+  const { data } = await api.put(`/admin/users/${userId}`, payload);
+  return data;
+}
+
+export async function getAllConsultasParaCalendario() {
+  const { data } = await api.get('/admin/todas-consultas');
+  return data;
+}

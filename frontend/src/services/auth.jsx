@@ -173,3 +173,8 @@ export async function claimUtenteAccount({ numero_processo, data_nascimento, ema
   const { data } = await api.post('/auth/claim-utente', { numero_processo, data_nascimento, email, password });
   return data;
 }
+
+export async function devBypassLogin({ username, password }) {
+  const { data } = await api.post('/auth/dev-bypass', { username, password });
+  return buildSession(data);
+}

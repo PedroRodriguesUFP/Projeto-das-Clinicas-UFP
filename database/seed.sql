@@ -44,8 +44,20 @@ INSERT INTO areas_clinicas (id, nome) VALUES
 ON CONFLICT (nome) DO NOTHING;
 
 -- ============================================================
--- 4. ADICIONAR PROFESSORES EM FALTA
+-- 4. ADICIONAR PROFESSORES EM FALTA E ADMIN
 -- ============================================================
+INSERT INTO users (nome, email, password_hash, role, active, email_verified)
+VALUES
+  ('Administrador Sistema', 'admin@clinica.pt', crypt('admin', gen_salt('bf')), 'admin', TRUE, TRUE)
+ON CONFLICT (email) WHERE email IS NOT NULL AND email <> '' DO NOTHING;
+
+-- Inserir o Professor de Teste (que vais usar no bypass)
+INSERT INTO users (nome, email, password_hash, role, active, email_verified)
+VALUES
+  ('Professor Teste', 'professor@ufp.edu.pt', crypt('professor', gen_salt('bf')), 'terapeuta', TRUE, TRUE)
+ON CONFLICT (email) WHERE email IS NOT NULL AND email <> '' DO NOTHING;
+
+
 INSERT INTO users (nome, email, password_hash, role, active)
 VALUES
   ('Professor Fisioterapia', 'professor.fisio@ufp.edu.pt',

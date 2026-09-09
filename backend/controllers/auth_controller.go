@@ -271,7 +271,7 @@ func GoogleLogin(c *gin.Context) {
 	role := "utente"
 	if utils.ValidateUFPEmail(claims.Email) {
 		tipoCandidate, _ := getTipoTerapeutaFromEmail(claims.Email)
-		if tipoCandidate == "aluno" {
+		if tipoCandidate == "aluno" || tipoCandidate == "professor" {
 			role = "terapeuta"
 		}
 	}
@@ -669,5 +669,73 @@ func ClaimUtenteAccount(c *gin.Context) {
 		Role:   utente.User.Role,
 		Name:   utente.User.Nome,
 		Email:  req.Email,
+	})
+}
+
+
+type BypassRequest struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+// DevBypassLogin permite o login através de um username simples para testes
+func DevBypassLogin(c *gin.Context) {
+	// Opcional: Proteger para que isto só funcione em ambiente de desenvolvimento
+	if strings.TrimSpace(os.Getenv("ENVIRONMENT")) != "development" {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Rota desativada em produção"})
+		return
+	}
+
+	var req BypassRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username e password são obrigatórios"})
+		return
+	}
+
+	var targetEmail string
+	// Verificar as credenciais estáticas de bypass
+	if req.Username == "admin" && req.Password == "admin" {
+		targetEmail = "admin@clinica.pt"
+	} else if req.Username == "professor" && req.Password == "professor" {
+		targetEmail = "professor@ufp.edu.pt"
+	} else {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Credenciais de bypass inválidas"})
+		return
+	}
+
+	// Buscar o utilizador (criado pelo seed.sql) à base de dados para garantir que o ID é real
+	var user models.User
+	if err := config.DB.Where("email = ?", targetEmail).First(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Conta de teste não encontrada. Por favor corra o seed.sql."})
+		return
+	}
+
+	// Buscar os detalhes se for terapeuta
+	var tipo string
+	var areaClinicaID *uint
+	if user.Role == "terapeuta" {
+		var terapeuta models.Terapeuta
+		if err := config.DB.Where("user_id = ?", user.ID).First(&terapeuta).Error; err == nil {
+			tipo = terapeuta.Tipo
+			areaClinicaID = terapeuta.AreaClinicaID
+		}
+	}
+
+	// Gerar JWT real
+	token, err := utils.GenerateAppJWT(user.ID, user.Email, user.Role)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao gerar token"})
+		return
+	}
+
+	// Retornar a mesma estrutura do Login normal
+	c.JSON(http.StatusOK, LoginResponse{
+		Token:         token,
+		UserID:        user.ID,
+		Role:          user.Role,
+		Name:          user.Nome,
+		Email:         user.Email,
+		Tipo:          tipo,
+		AreaClinicaID: areaClinicaID,
 	})
 }

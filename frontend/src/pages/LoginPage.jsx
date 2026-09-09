@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { loginRequest, loginWithGoogle, resendVerificationRequest, verifyEmailRequest } from '../services/auth.jsx';
 import { validateEmail } from '../utils/emailValidation.js';
 import { GoogleLogin } from '@react-oauth/google';
 import { Eye, EyeSlash, PersonBadgeFill, PersonFill } from 'react-bootstrap-icons';
 import '../styles/login.css';
 import { useTranslation } from 'react-i18next';
+import { loginRequest, loginWithGoogle, resendVerificationRequest, verifyEmailRequest, devBypassLogin } from '../services/auth.jsx';
+
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -123,6 +124,25 @@ export function LoginPage() {
     setError(t('login.googleLoginError'));
   };
 
+const [bypassUser, setBypassUser] = useState('');
+const [bypassPass, setBypassPass] = useState('');
+
+const handleDevBypass = async (e) => {
+  e.preventDefault();
+  setError('');
+  setLoading(true);
+  try {
+    const session = await devBypassLogin({ username: bypassUser, password: bypassPass });
+    login(session);
+    navigate('/dashboard');
+  } catch (err) {
+    setError(err?.response?.data?.error || err.message || 'Falha no login de bypass');
+  } finally {
+    setLoading(false);
+  }
+};
+
+
   return (
     <div className="login-page">
       <Link to="/" className="login-home-btn">
@@ -181,6 +201,34 @@ export function LoginPage() {
                     nonce={nonce}
                   />
                 </div>
+                {import.meta.env.DEV && (
+                    <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px dashed #d1d5db' }}>
+                      <p style={{ textAlign: 'center', fontSize: 12, color: '#9ca3af', marginBottom: 8 }}>
+                        Bypass de desenvolvimento (admin / professor)
+                      </p>
+                      <form onSubmit={handleDevBypass} style={{ display: 'flex', gap: 8 }}>
+                        <input
+                         type="text"
+                         placeholder="admin ou professor"
+                         value={bypassUser}
+                         onChange={(e) => setBypassUser(e.target.value)}
+                         disabled={loading}
+                         style={{ flex: 1, minWidth: 0, padding: '6px 8px', fontSize: 13 }}
+                           />
+                        <input
+                        type="password"
+                        placeholder="password"
+                        value={bypassPass}
+                        onChange={(e) => setBypassPass(e.target.value)}
+                        disabled={loading}
+                        style={{ flex: 1, minWidth: 0, padding: '6px 8px', fontSize: 13 }}
+                        />
+                        <button type="submit" className="login-button" disabled={loading} style={{ padding: '6px 12px', fontSize: 13 }}>
+                          Entrar
+                        </button>
+                      </form>
+                    </div>
+                  )}
               </>
             )}
 

@@ -70,6 +70,12 @@ type StaffUserResponse struct {
 	CreatedAt   string `json:"created_at"`
 }
 
+
+type UpdateUserRequest struct {
+	Nome string `json:"nome"`
+	Role string `json:"role"`
+}
+
 func GetStaffUsers(c *gin.Context) {
 	var users []models.User
 	if err := config.DB.Where("role != ?", "utente").Order("created_at DESC").Find(&users).Error; err != nil {
@@ -176,4 +182,59 @@ func CreateStaffUser(c *gin.Context) {
 		Active:    user.Active,
 		CreatedAt: user.CreatedAt.Format("2006-01-02"),
 	})
+}
+func UpdateUserProfile(c *gin.Context) {
+	id := c.Param("id")
+	var req UpdateUserRequest
+	
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
+		return
+	}
+	
+	var user models.User
+	if err := config.DB.First(&user, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Utilizador não encontrado"})
+		return
+	}
+
+	// Atualiza apenas os campos permitidos
+	if req.Nome != "" {
+		user.Nome = req.Nome
+	}
+	if req.Role != "" {
+		user.Role = req.Role
+	}
+
+	if err := config.DB.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao atualizar utilizador"})
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{"message": "Perfil atualizado com sucesso"})
+}
+
+// NOVA FUNÇÃO: Listar TODAS as consultas para o Calendário do Admin
+func GetAllConsultasParaCalendario(c *gin.Context) {
+	var consultas []models.Consulta
+	
+	// Podes usar Preload se quiseres mostrar os nomes do terapeuta/utente no calendário
+	if err := config.DB.Preload("Terapeuta.User").Preload("Utente.User").Find(&consultas).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao buscar consultas"})
+		return
+	}
+	
+	// Mapear para devolver num formato fácil para o FullCalendar ler
+	var result []map[string]interface{}
+	for _, consulta := range consultas {
+		result = append(result, map[string]interface{}{
+			"id":     consulta.ID,
+			"title":  fmt.Sprintf("Consulta - %s", consulta.Estado),
+			"start":  consulta.DataInicio, // Certifica-te de que no modelo Consulta este campo se chama DataInicio
+			"end":    consulta.DataFim,    // Certifica-te de que este campo se chama DataFim
+			"estado": consulta.Estado,
+		})
+	}
+	
+	c.JSON(http.StatusOK, result)
 }
