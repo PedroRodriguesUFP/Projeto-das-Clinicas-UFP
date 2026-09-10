@@ -16,6 +16,8 @@ DELETE FROM registos_clinicos;
 DELETE FROM assiduidade;
 DELETE FROM processos_clinicos;
 DELETE FROM consultas;
+DELETE FROM sala_area_clinica; 
+DELETE FROM salas;
 
 -- ============================================================
 -- 2. APAGAR UTILIZADORES FORA DO KEEP-LIST
@@ -42,6 +44,40 @@ INSERT INTO areas_clinicas (id, nome) VALUES
 (3, 'Fisioterapia'), 
 (4, 'Terapia da Fala')
 ON CONFLICT (nome) DO NOTHING;
+
+-- ============================================================
+-- 3.5. CRIAR SALAS E ASSOCIAR ÀS ÁREAS CLÍNICAS
+-- ============================================================
+-- Inserir as 12 salas (com IDs fixos para facilitar a associação)
+INSERT INTO salas (id, nome, descricao, ativa) VALUES
+  -- Psicologia
+  (1, 'Gabinete Psicologia 1', 'Sala de consultas individual', TRUE),
+  (2, 'Gabinete Psicologia 2', 'Sala de consultas individual', TRUE),
+  (3, 'Gabinete Psicologia 3', 'Sala de consultas individual', TRUE),
+  -- Nutrição
+  (4, 'Gabinete Nutrição 1', 'Sala com balança de bioimpedância', TRUE),
+  (5, 'Gabinete Nutrição 2', 'Sala de consultas individual', TRUE),
+  (6, 'Gabinete Nutrição 3', 'Sala de consultas individual', TRUE),
+  -- Fisioterapia
+  (7, 'Ginásio Fisioterapia A', 'Espaço amplo partilhado', TRUE),
+  (8, 'Ginásio Fisioterapia B', 'Espaço amplo partilhado', TRUE),
+  (9, 'Box de Tratamento 1', 'Box fechada para tratamentos localizados', TRUE),
+  -- Terapia da Fala
+  (10, 'Gabinete Terapia Fala 1', 'Sala insonorizada', TRUE),
+  (11, 'Gabinete Terapia Fala 2', 'Sala insonorizada', TRUE),
+  (12, 'Gabinete Terapia Fala 3', 'Sala insonorizada', TRUE)
+ON CONFLICT (id) DO NOTHING;
+
+-- Ajustar o relógio interno da base de dados para os IDs (evita erros futuros ao criar salas novas no software)
+SELECT setval('salas_id_seq', (SELECT MAX(id) FROM salas));
+
+-- Associar as salas às áreas respetivas (na tabela de ligação)
+INSERT INTO sala_area_clinica (sala_id, area_clinica_id) VALUES
+  (1, 1), (2, 1), (3, 1),       -- Psicologia (ID 1)
+  (4, 2), (5, 2), (6, 2),       -- Nutrição (ID 2)
+  (7, 3), (8, 3), (9, 3),       -- Fisioterapia (ID 3)
+  (10, 4), (11, 4), (12, 4)     -- Terapia da Fala (ID 4)
+ON CONFLICT DO NOTHING;
 
 -- ============================================================
 -- 4. ADICIONAR PROFESSORES EM FALTA E ADMIN

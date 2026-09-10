@@ -70,7 +70,6 @@ type StaffUserResponse struct {
 	CreatedAt   string `json:"created_at"`
 }
 
-
 type UpdateUserRequest struct {
 	Nome string `json:"nome"`
 	Role string `json:"role"`
@@ -186,12 +185,12 @@ func CreateStaffUser(c *gin.Context) {
 func UpdateUserProfile(c *gin.Context) {
 	id := c.Param("id")
 	var req UpdateUserRequest
-	
+
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
 		return
 	}
-	
+
 	var user models.User
 	if err := config.DB.First(&user, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Utilizador não encontrado"})
@@ -210,20 +209,20 @@ func UpdateUserProfile(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao atualizar utilizador"})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{"message": "Perfil atualizado com sucesso"})
 }
 
 // NOVA FUNÇÃO: Listar TODAS as consultas para o Calendário do Admin
 func GetAllConsultasParaCalendario(c *gin.Context) {
 	var consultas []models.Consulta
-	
+
 	// Podes usar Preload se quiseres mostrar os nomes do terapeuta/utente no calendário
 	if err := config.DB.Preload("Terapeuta.User").Preload("Utente.User").Find(&consultas).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao buscar consultas"})
 		return
 	}
-	
+
 	// Mapear para devolver num formato fácil para o FullCalendar ler
 	var result []map[string]interface{}
 	for _, consulta := range consultas {
@@ -235,6 +234,62 @@ func GetAllConsultasParaCalendario(c *gin.Context) {
 			"estado": consulta.Estado,
 		})
 	}
-	
+
 	c.JSON(http.StatusOK, result)
+}
+
+// ─── Gestão de Salas (Admin) ─────────────────────────────────────────────────
+
+type CreateSalaRequest struct {
+	Nome          string `json:"nome" binding:"required"`
+	Descricao     string `json:"descricao"`
+	AreaClinicaID uint   `json:"area_clinica_id" binding:"required"`
+}
+
+func CreateSala(c *gin.Context) {
+	var req CreateSalaRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos: " + err.Error()})
+		return
+	}
+
+	// 1. Inserir na tabela 'salas' e recuperar o ID gerado
+	var salaID uint
+	err := config.DB.Raw(`
+		INSERT INTO salas (nome, descricao, ativa) 
+		VALUES (?, ?, true) RETURNING id
+	`, req.Nome, req.Descricao).Scan(&salaID).Error
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao criar sala: " + err.Error()})
+		return
+	}
+
+	// 2. Inserir na tabela de ligação 'sala_area_clinica'
+	err = config.DB.Exec(`
+		INSERT INTO sala_area_clinica (sala_id, area_clinica_id) 
+		VALUES (?, ?)
+	`, salaID, req.AreaClinicaID).Error
+
+	if err != nil {
+		// Se falhar a ligação, apagamos a sala órfã por segurança
+		config.DB.Exec("DELETE FROM salas WHERE id = ?", salaID)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao associar área clínica"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "Sala criada com sucesso", "sala_id": salaID})
+}
+
+func DeleteSala(c *gin.Context) {
+	id := c.Param("id")
+
+	// O ON DELETE CASCADE no schema.sql garante que a ligação na sala_area_clinica
+	// também é apagada automaticamente quando apagamos a sala principal.
+	if err := config.DB.Exec("DELETE FROM salas WHERE id = ?", id).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao eliminar sala"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Sala eliminada com sucesso"})
 }

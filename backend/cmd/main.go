@@ -213,6 +213,9 @@ func main() {
 		auth.POST("/admin/users", middleware.RoleMiddleware("admin"), controllers.CreateStaffUser)
 		auth.PUT("/admin/users/:id", middleware.RoleMiddleware("admin"), controllers.UpdateUserProfile)
 		auth.GET("/admin/todas-consultas", middleware.RoleMiddleware("admin"), controllers.GetAllConsultasParaCalendario)
+
+		auth.POST("/admin/salas", middleware.RoleMiddleware("admin"), controllers.CreateSala)
+		auth.DELETE("/admin/salas/:id", middleware.RoleMiddleware("admin"), controllers.DeleteSala)
 	}
 
 	// Uploads: avatars públicos, PDFs protegidos — geridos num único handler

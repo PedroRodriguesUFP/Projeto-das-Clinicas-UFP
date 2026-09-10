@@ -13,6 +13,18 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// ---> NOVAS FUNÇÕES PARA GESTÃO DE SALAS (ADMIN) <---
+export async function createSala(salaData) {
+  const { data } = await api.post('/admin/salas', salaData);
+  return data;
+}
+
+export async function deleteSala(salaId) {
+  const { data } = await api.delete(`/admin/salas/${salaId}`);
+  return data;
+}
+// ----------------------------------------------------
+
 export async function getConsultas() {
   const { data } = await api.get('/consultas');
   return data;
@@ -164,8 +176,8 @@ export async function exportSalas(from, to) {
   a.remove();
   URL.revokeObjectURL(url);
 }
+
 export const downloadDocumento = async (arquivoUrl) => {
-  // O 'responseType: blob' diz ao axios para tratar a resposta como um ficheiro
   const response = await axios.get(arquivoUrl, { responseType: 'blob' });
   return response.data;
 };

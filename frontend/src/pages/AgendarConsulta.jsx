@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { DateInput } from '../components/DateInput.jsx';
-import { MiniCalendar } from '../components/MiniCalendar.jsx'
+import { MiniCalendar } from '../components/MiniCalendar.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useTranslation } from 'react-i18next';
 import {
@@ -155,37 +155,37 @@ export function AgendarConsulta() {
 
   // Load available slots when terapeuta + date + area are set (no sala required)
   useEffect(() => {
-  const fetchHorarios = async () => {
-    if (isUtente) {
-      if (!form.area_clinica_id || !form.data_inicio) {
+    const fetchHorarios = async () => {
+      if (isUtente) {
+        if (!form.area_clinica_id || !form.data_inicio) {
+          setHorariosDisponiveis([]);
+          return;
+        }
+        setLoadingHorarios(true);
+        try {
+          const result = await getHorariosDisponiveisArea(form.area_clinica_id, form.data_inicio, form.duracao);
+          setHorariosDisponiveis(result.horarios_disponiveis || result || []);
+        } finally {
+          setLoadingHorarios(false);
+        }
+        return;
+      }
+
+      // comportamento atual para staff (não mexer)
+      if (!form.terapeuta_id || !form.data_inicio || !form.area_clinica_id) {
         setHorariosDisponiveis([]);
         return;
       }
       setLoadingHorarios(true);
       try {
-        const result = await getHorariosDisponiveisArea(form.area_clinica_id, form.data_inicio, form.duracao);
+        const result = await getHorariosDisponiveis(form.terapeuta_id, form.data_inicio, form.duracao);
         setHorariosDisponiveis(result.horarios_disponiveis || result || []);
       } finally {
         setLoadingHorarios(false);
       }
-      return;
-    }
-
-    // comportamento atual para staff (não mexer)
-    if (!form.terapeuta_id || !form.data_inicio || !form.area_clinica_id) {
-      setHorariosDisponiveis([]);
-      return;
-    }
-    setLoadingHorarios(true);
-    try {
-      const result = await getHorariosDisponiveis(form.terapeuta_id, form.data_inicio, form.duracao);
-      setHorariosDisponiveis(result.horarios_disponiveis || result || []);
-    } finally {
-      setLoadingHorarios(false);
-    }
-  };
-  fetchHorarios();
-}, [form.terapeuta_id, form.data_inicio, form.duracao, form.area_clinica_id, isUtente]);
+    };
+    fetchHorarios();
+  }, [form.terapeuta_id, form.data_inicio, form.duracao, form.area_clinica_id, isUtente]);
 
   // When slot is selected, load available salas for that slot (non-utente only)
   useEffect(() => {
@@ -220,9 +220,6 @@ export function AgendarConsulta() {
     if (!uId) { setUtenteDetails(null); return; }
     getUtenteDetails(uId).then(setUtenteDetails).catch(() => setUtenteDetails(null));
   }, [form.utente_id, isUtente, user?.id]);
-
-  const isFisioterapia =
-    areasClinicas.find((a) => String(a.id) === form.area_clinica_id)?.nome?.toLowerCase().includes('fisio') ?? false;
 
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : i18n.resolvedLanguage?.startsWith('fr') ? 'fr' : 'pt';
   const getTranslatedAreaName = (nome) => {
@@ -260,9 +257,7 @@ export function AgendarConsulta() {
     e.preventDefault();
     setError('');
 
-
-
-    if ((!isUtente && !form.utente_id) || (!isUtente && !form.terapeuta_id) || (!isUtente && !isFisioterapia && !form.sala_id) || !form.area_clinica_id || !form.data_inicio || !form.hora_inicio) {
+    if ((!isUtente && !form.utente_id) || (!isUtente && !form.terapeuta_id) || (!isUtente && !form.sala_id) || !form.area_clinica_id || !form.data_inicio || !form.hora_inicio) {
       setError(t('agendarConsulta.camposObrigatorios'));
       return;
     }
@@ -287,7 +282,7 @@ export function AgendarConsulta() {
       const payload = {
         utente_id: utenteId,
         terapeuta_id: form.terapeuta_id ? parseInt(form.terapeuta_id) : undefined,
-        ...(isUtente ? {} : (form.sala_id ? { sala_id: parseInt(form.sala_id) } : {})),
+        ...(isUtente ? {} : { sala_id: parseInt(form.sala_id) }),
         area_clinica_id: parseInt(form.area_clinica_id),
         data_inicio: formatLocalDateTime(dataInicio),
         data_fim: formatLocalDateTime(dataFim),
@@ -371,7 +366,6 @@ export function AgendarConsulta() {
                       </select>
                     </div>
                   )}
-
 
                   {!isUtente &&(
                   <div className="form-group">
@@ -515,9 +509,7 @@ export function AgendarConsulta() {
               {form.hora_inicio && !isUtente && (
                 <>
                   <h2>{t('agendarConsulta.salaTitulo')}</h2>
-                  {isFisioterapia ? (
-                    <p className="helper-text">{t('agendarConsulta.salaFisio')}</p>
-                  ) : salasParaSlot.length === 0 ? (
+                  {salasParaSlot.length === 0 ? (
                     <p className="helper-text">{t('agendarConsulta.semSalas')}</p>
                   ) : (
                     <div className="form-group">
@@ -559,7 +551,7 @@ export function AgendarConsulta() {
                 <button
                   type="submit"
                   className="btn btn-primary"
-                  disabled={saving || !form.hora_inicio || (!isUtente && !isFisioterapia && !form.sala_id)}
+                  disabled={saving || !form.hora_inicio || (!isUtente && !form.sala_id)}
                 >
                   {saving ? t('agendarConsulta.agendando') : t('agendarConsulta.agendar')}
                 </button>
