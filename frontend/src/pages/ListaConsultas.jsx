@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { CalendarDate, ClipboardData, Search, ArrowRepeat, Eye, Pencil, X, Check, ExclamationTriangle } from 'react-bootstrap-icons';
+import { CalendarDate, ClipboardData, Search, ArrowRepeat, Eye, Pencil, X, Check } from 'react-bootstrap-icons';
 import { getConsultas, cancelConsulta, createConsulta, updateEstadoConsulta } from '../services/consultas.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { CalendarioVisualizacao } from '../components/CalendarioVisualizacao.jsx';
@@ -136,6 +136,15 @@ export function ListaConsultas() {
       minute: '2-digit',
       timeZone: 'UTC',
     });
+  };
+
+  // Estados de falta (justificada/injustificada) são agregados visualmente como "Falta"
+  const isFaltaEstado = (estado) => estado === 'faltou_injustificada' || estado === 'faltou_justificada';
+  const getEstadoClass = (estado) => (isFaltaEstado(estado) ? 'falta' : (estado || 'agendada'));
+  const getEstadoLabel = (estado) => {
+    if (isFaltaEstado(estado)) return t('consultationsPage.absence');
+    const base = estado || t('consultationsPage.scheduled');
+    return base.charAt(0).toUpperCase() + base.slice(1);
   };
 
   const canManageConsultas = ['admin', 'administrativo', 'terapeuta'].includes(user?.role);
@@ -290,8 +299,8 @@ export function ListaConsultas() {
                     <td className="col-sala">{consulta.sala?.nome || '-'}</td>
                     <td>{formatDateTime(consulta.data_inicio)}</td>
                     <td>
-                      <span className={`status ${consulta.estado || 'agendada'}`}>
-                        {(consulta.estado || t('consultationsPage.scheduled')).charAt(0).toUpperCase() + (consulta.estado || t('consultationsPage.scheduled')).slice(1)}
+                      <span className={`status ${getEstadoClass(consulta.estado)}`}>
+                        {getEstadoLabel(consulta.estado)}
                       </span>
                       {consulta.estado_validacao === 'pendente' && (
                         <span style={{ display: 'block', marginTop: 4, background: '#fef3c7', color: '#92400e', borderRadius: 4, padding: '2px 8px', fontSize: 11, whiteSpace: 'nowrap' }}>
@@ -331,8 +340,8 @@ export function ListaConsultas() {
               <div key={consulta.id} className="consulta-mobile-card">
                 <div className="card-top">
                   <span className="card-nome">{consulta.utente?.nome || '-'}</span>
-                  <span className={`status ${consulta.estado || 'agendada'}`}>
-                    {(consulta.estado || 'agendada').charAt(0).toUpperCase() + (consulta.estado || 'agendada').slice(1)}
+                  <span className={`status ${getEstadoClass(consulta.estado)}`}>
+                    {getEstadoLabel(consulta.estado)}
                   </span>
                 </div>
                 {consulta.estado_validacao === 'pendente' && (
@@ -385,7 +394,7 @@ export function ListaConsultas() {
               </button>
               <button
                 className="btn btn-danger"
-                onClick={() => handleCancel(cancelConfirm)}
+                onClick={() => handleCancelar(cancelConfirm)}
               >
                 {t('confirm') || 'Sim, Cancelar'}
               </button>
@@ -410,22 +419,13 @@ export function ListaConsultas() {
                   <Check size={16} /> {t('consultationsPage.markAsCompleted')}
                 </button>
               )}
-              {consultaSelecionada.estado !== 'faltou_injustificada' && (
+              {consultaSelecionada.estado !== 'faltou_injustificada' && consultaSelecionada.estado !== 'faltou_justificada' && (
                 <button
                   className="btn btn-warning"
                   onClick={() => handleMudarEstado('faltou_injustificada')}
                   style={{ width: '100%' }}
                 >
-                  <X size={16} /> {t('consultationsPage.absenceUnjustified')}
-                </button>
-              )}
-              {consultaSelecionada.estado !== 'faltou_justificada' && (
-                <button
-                  className="btn btn-info"
-                  onClick={() => handleMudarEstado('faltou_justificada')}
-                  style={{ width: '100%' }}
-                >
-                  <ExclamationTriangle size={16} /> {t('consultationsPage.absenceJustified')}
+                  <X size={16} /> {t('consultationsPage.absence')}
                 </button>
               )}
               {consultaSelecionada.estado !== 'cancelada' && (
@@ -477,4 +477,3 @@ export function ListaConsultas() {
     </div>
   );
 }
-

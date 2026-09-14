@@ -287,6 +287,7 @@
     "changeStatusTitle": "Modifier le statut de la consultation",
     "changeStatusPrompt": "Sélectionnez le nouveau statut pour la consultation :",
     "markAsCompleted": "Marquer comme réalisée",
+    "absence": "Absence",
     "absenceUnjustified": "Absence injustifiée",
     "absenceJustified": "Absence justifiée",
     "statusUpdate": "Modifier le statut",

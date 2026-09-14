@@ -121,6 +121,11 @@ table tr:hover {
   color: #991b1b;
 }
 
+.status.falta {
+    background: #fef9c3;
+     color: #a16207;
+}
+
 /* Registos (Perfil de Utilizador) */
 .registo-item {
   border: 1px solid #e5e7eb;

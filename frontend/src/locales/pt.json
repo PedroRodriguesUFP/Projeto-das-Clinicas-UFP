@@ -252,6 +252,7 @@
     "confirmCancelMessage": "Tem a certeza que deseja cancelar esta consulta?",
     "changeStatusTitle": "Alterar Estado da Consulta",
     "changeStatusPrompt": "Selecione o novo estado para a consulta:",
+    "absence": "Falta",
     "markAsCompleted": "Marcar como Realizada",
     "absenceUnjustified": "Falta Injustificada",
     "absenceJustified": "Falta Justificada",
